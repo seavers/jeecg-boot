@@ -11,13 +11,21 @@
                   <a-list-item slot="renderItem" slot-scope="item, index">
                     <a-icon type="menu" />
                     <span>{{ item.title }}</span>
-                    <a-switch default-checked />
+                    <a-switch default-checked @change="onChangeFieldShow" :v-data-index="item.dataIndex"/>
                   </a-list-item>
               </a-list>
               <p><a-button icon="plus">新增字段</a-button></p>
             </template>
-            <a-button type="primary">字段配置</a-button>
+            <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
+
+          <a-popover title="字段配置" placement="bottom" trigger="click">
+            <template #content>
+              <j-filter-query :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
+            </template>
+            <a-button type="primary" icon="filter">筛选</a-button>
+          </a-popover>
+          
         </div>
 
         <!-- 查询区域 -->
@@ -51,7 +59,7 @@
         <!-- 操作按钮区域 -->
         <div class="table-operator" style="margin: 5px 0 10px 2px">
           <a-button @click="handleAdd" type="primary" icon="plus">新建角色</a-button>
-          <!--<a-button @click="handleEdit(model1)" type="primary" icon="plus">角色编辑</a-button>-->
+          <!--<a-button @click="handleEdit(model)" type="primary" icon="plus">角色编辑</a-button>-->
           <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
             <a-button type="primary" icon="import">导入</a-button>
           </a-upload>
@@ -60,8 +68,8 @@
 
         <div class="ant-alert ant-alert-info" style="margin-bottom: 16px;">
           <i class="anticon anticon-info-circle ant-alert-icon">
-          </i> 已选择 <a><b>{{ selectedRowKeys1.length }}</b></a>项
-          <a style="margin-left: 24px" @click="onClearSelected1">清空</a>
+          </i> 已选择 <a><b>{{ selectedRowKeys.length }}</b></a>项
+          <a style="margin-left: 24px" @click="onClearSelected">清空</a>
         </div>
 
         <div style="margin-top: 15px">
@@ -75,7 +83,7 @@
             :dataSource="dataSource"
             :pagination="ipagination"
             :loading="loading"
-            :rowSelection="{selectedRowKeys: selectedRowKeys1, onChange: onSelectChange1, type:'radio'}"
+            :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange, type:'radio'}"
             @change="handleTableChange">
           <span slot="action" slot-scope="text, record">
             <a @click="handleOpen(record)">用户</a>
@@ -93,7 +101,7 @@
                   <a @click="handleEdit(record)">编辑</a>
                 </a-menu-item>
                 <a-menu-item>
-                  <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete1(record.id)">
+                  <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record.id)">
                     <a>删除</a>
                   </a-popconfirm>
                 </a-menu-item>
@@ -197,6 +205,7 @@
 </template>
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
+  import JFilterQuery from '@/components/jeecg/JFilterQuery.vue';
   import { deleteAction, postAction, getAction } from '@/api/manage'
   import SelectUserModal from '../system/modules/SelectUserModal'
   import RoleModal from '../system/modules/RoleModal'
@@ -205,18 +214,11 @@
   import UserRoleModal from '../system/modules/UserRoleModal'
   import moment from 'moment'
 
-  const dataxx = [
-  'Racing car sprays burning fuel into crowd.',
-  'Japanese princess to wed commoner.',
-  'Australian walks 100km after outback crash.',
-  'Man charged over missing wedding girl.',
-  'Los Angeles battles huge wildfires.',
-];
-
   export default {
-    name: 'RoleUserList',
+    name: 'DynamicList',
     mixins: [JeecgListMixin],
     components: {
+      JFilterQuery,
       UserRoleModal,
       SelectUserModal,
       RoleModal,
@@ -225,15 +227,11 @@
     },
     data() {
       return {
-        dataxx: dataxx,
-        model1: {},
-        model2: {},
+        model: {},
         currentRoleId: '',
-        queryParam1: {},
-        queryParam2: {},
-        dataSource1: [],
-        dataSource2: [],
-        ipagination1: {
+        queryParam: {},
+        dataSource: [],
+        ipagination: {
           current: 1,
           pageSize: 10,
           pageSizeOptions: ['10', '20', '30'],
@@ -244,33 +242,14 @@
           showSizeChanger: true,
           total: 0
         },
-        ipagination2: {
-          current: 1,
-          pageSize: 10,
-          pageSizeOptions: ['10', '20', '30'],
-          showTotal: (total, range) => {
-            return range[0] + '-' + range[1] + ' 共' + total + '条'
-          },
-          showQuickJumper: true,
-          showSizeChanger: true,
-          total: 0
-        },
-        isorter1: {
+        isorter: {
           column: 'createTime',
           order: 'desc'
         },
-        isorter2: {
-          column: 'createTime',
-          order: 'desc'
-        },
-        filters1: {},
-        filters2: {},
-        loading1: false,
-        loading2: false,
-        selectedRowKeys1: [],
-        selectedRowKeys2: [],
-        selectionRows1: [],
-        selectionRows2: [],
+        filters: {},
+        loading: false,
+        selectedRowKeys: [],
+        selectionRows: [],
         test:{},
         rightcolval:0,
         columns:
@@ -301,199 +280,42 @@
               scopedSlots: { customRender: 'action' }
             }
           ],
-        columns2: [{
-          title: '用户账号',
-          align: 'center',
-          dataIndex: 'username',
-          width: 120
-        },
-          {
-            title: '用户名称',
-            align: 'center',
-            width: 100,
-            dataIndex: 'realname'
-          },
-          {
-            title: '状态',
-            align: 'center',
-            width: 80,
-            dataIndex: 'status_dictText'
-          },
 
-          {
-            title: '操作',
-            dataIndex: 'action',
-            scopedSlots: { customRender: 'action' },
-            align: 'center',
-            width: 120
-          }],
+        superQueryFieldList: [
+          { type: 'input', value: 'username', text: '用户账号', },
+          { type: 'input', value: 'realname', text: '用户姓名', },
+          { type: 'select', value: 'sex', dbType: 'int', text: '性别', dictCode: 'sex' },
+        ],
 
-        // 高级查询参数
-        superQueryParams2: '',
-        // 高级查询拼接条件
-        superQueryMatchType2: 'and',
         url: {
           list: '/sys/role/list',
           delete: '/sys/role/delete',
-          list2: '/sys/user/userRoleList',
           addUserRole: '/sys/user/addSysUserRole',
-          delete2: '/sys/user/deleteUserRole',
-          deleteBatch2: '/sys/user/deleteUserRoleBatch',
           exportXlsUrl: 'sys/role/exportXls',
           importExcelUrl: 'sys/role/importExcel'
         }
       }
     },
-    computed: {
-      importExcelUrl: function() {
-        return `${window._CONFIG['domianURL']}/${this.url.importExcelUrl}`
-      },
-      leftColMd() {
-        return this.selectedRowKeys1.length === 0 ? 24 : 12
-      },
-      rightColMd() {
-        return this.selectedRowKeys1.length === 0 ? 0 : 12
-      }
-    },
     methods: {
-      onSelectChange2(selectedRowKeys, selectionRows) {
-        this.selectedRowKeys2 = selectedRowKeys
-        this.selectionRows2 = selectionRows
+      onClearSelected() {
+        this.selectedRowKeys = []
+        this.selectionRows = []
       },
-      onClearSelected2() {
-        this.selectedRowKeys2 = []
-        this.selectionRows2 = []
-      },
-      onClearSelected1() {
-        this.selectedRowKeys1 = []
-        this.selectionRows1 = []
-      },
-      onSelectChange1(selectedRowKeys, selectionRows) {
+      onSelectChange(selectedRowKeys, selectionRows) {
         this.rightcolval = 1
-        this.selectedRowKeys1 = selectedRowKeys
-        this.selectionRows1 = selectionRows
-        this.model1 = Object.assign({}, selectionRows[0])
-        console.log(this.model1)
+        this.selectedRowKeys = selectedRowKeys
+        this.selectionRows = selectionRows
+        this.model = Object.assign({}, selectionRows[0])
+        console.log(this.model)
         this.currentRoleId = selectedRowKeys[0]
-        this.loadData2()
       },
       onClearSelected() {
       },
 
-      getQueryParams2() {
-        //获取查询条件
-        let sqp = {}
-        if (this.superQueryParams2) {
-          sqp['superQueryParams'] = encodeURI(this.superQueryParams2)
-          sqp['superQueryMatchType'] = this.superQueryMatchType2
-        }
-        var param = Object.assign(sqp, this.queryParam2, this.isorter2, this.filters2)
-        param.field = this.getQueryField2()
-        param.pageNo = this.ipagination2.current
-        param.pageSize = this.ipagination2.pageSize
-        return filterObj(param)
-      },
-      getQueryField2() {
-        //TODO 字段权限控制
-        var str = 'id,'
-        this.columns2.forEach(function(value) {
-          str += ',' + value.dataIndex
-        })
-        return str
-      },
-      handleEdit2: function(record) {
-        this.$refs.modalForm2.title = '编辑'
-        this.$refs.modalForm2.roleDisabled = true
-        this.$refs.modalForm2.edit(record)
-      },
-      handleAdd2: function() {
-        if (this.currentRoleId == '') {
-          this.$message.error('请选择一个角色!')
-        } else {
-          this.$refs.modalForm2.roleDisabled = true
-          this.$refs.modalForm2.title = '新增'
-          this.$refs.modalForm2.edit({activitiSync:'1',userIdentity:1,selectedroles:this.currentRoleId})
-        }
-      },
-      modalFormOk2() {
-        // 新增/修改 成功时，重载列表
-        this.loadData2()
-      },
-      loadData2(arg) {
-        if (!this.url.list2) {
-          this.$message.error('请设置url.list2属性!')
-          return
-        }
-        //加载数据 若传入参数1则加载第一页的内容
-        if (arg === 1) {
-          this.ipagination2.current = 1
-        }
-        if (this.currentRoleId === '') return
-        let params = this.getQueryParams2()//查询条件
-        params.roleId = this.currentRoleId
-        this.loading2 = true
-        getAction(this.url.list2, params).then((res) => {
-          if (res.success) {
-            this.dataSource2 = res.result.records
-            this.ipagination2.total = res.result.total
-
-          }
-          this.loading2 = false
-        })
-
-      },
-      handleDelete1: function(id) {
+      handleDelete: function(id) {
         this.handleDelete(id)
         this.dataSource2 = []
         this.currentRoleId = ''
-      },
-      handleDelete2: function(id) {
-        if (!this.url.delete2) {
-          this.$message.error('请设置url.delete2属性!')
-          return
-        }
-        var that = this
-        deleteAction(that.url.delete2, { roleId: this.currentRoleId, userId: id }).then((res) => {
-          if (res.success) {
-            that.$message.success(res.message)
-            that.loadData2()
-          } else {
-            that.$message.warning(res.message)
-          }
-        })
-      },
-      batchDel2: function() {
-
-        if (!this.url.deleteBatch2) {
-          this.$message.error('请设置url.deleteBatch2属性!')
-          return
-        }
-        if (this.selectedRowKeys2.length <= 0) {
-          this.$message.warning('请选择一条记录！')
-          return
-        } else {
-          var ids = ''
-          for (var a = 0; a < this.selectedRowKeys2.length; a++) {
-            ids += this.selectedRowKeys2[a] + ','
-          }
-          var that = this
-          console.log(this.currentDeptId)
-          this.$confirm({
-            title: '确认删除',
-            content: '是否删除选中数据?',
-            onOk: function() {
-              deleteAction(that.url.deleteBatch2, { roleId: that.currentRoleId, userIds: ids }).then((res) => {
-                if (res.success) {
-                  that.$message.success(res.message)
-                  that.loadData2()
-                  that.onClearSelected()
-                } else {
-                  that.$message.warning(res.message)
-                }
-              })
-            }
-          })
-        }
       },
       selectOK(data) {
         let params = {}
@@ -522,8 +344,8 @@
       },
       handleOpen(record) {
         this.rightcolval = 1
-        this.selectedRowKeys1 = [record.id]
-        this.model1 = Object.assign({}, record)
+        this.selectedRowKeys = [record.id]
+        this.model = Object.assign({}, record)
         this.currentRoleId = record.id
         this.onClearSelected2()
         this.loadData2()
@@ -536,37 +358,25 @@
           this.$refs.modalForm.title = '编辑'
         }
       },*/
-      searchQuery2() {
-        this.loadData2(1)
-      },
-      searchReset2() {
-        this.queryParam2 = {}
-        this.loadData2(1)
-      },
-      handleTableChange2(pagination, filters, sorter) {
-        //分页、排序、筛选变化时触发
-        //TODO 筛选
-        if (Object.keys(sorter).length > 0) {
-          this.isorter2.column = sorter.field
-          this.isorter2.order = 'ascend' == sorter.order ? 'asc' : 'desc'
-        }
-        this.ipagination2 = pagination
-        this.loadData2()
-      },
       hideUserList(){
         //this.rightcolval = 0
-        this.selectedRowKeys1 = []
+        this.selectedRowKeys = []
       },
       handlePerssion(roleId){
         this.$refs.modalUserRole.show(roleId);
       },
+      onChangeFieldShow(checked, ev) {
+        console.log(`a-switch to ${checked} ${ev.target}`)
+        var index = ev.target.getAttribute('v-data-index')
+
+      }
     }
   }
 </script>
 <style scoped>
   /** Button按钮间距 */
   .ant-btn {
-    margin-left: 8px
+    margin-right: 8px
   }
   .ant-popover .ant-popover-inner-content {
     padding: 0;
