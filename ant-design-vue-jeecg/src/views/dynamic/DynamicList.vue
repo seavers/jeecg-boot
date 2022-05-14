@@ -33,7 +33,7 @@
             size="middle"
             bordered
             rowKey="id"
-            :columns="columns"
+            :columns="tableColumn"
             :dataSource="dataSource"
             :pagination="ipagination"
             :loading="loading"
@@ -106,6 +106,8 @@
           showSizeChanger: true,
           total: 0
         },
+        defColumns: [],
+        settingColumns: [],
         actionColumn: {
             title: "操作",
             dataIndex: "action",
@@ -141,6 +143,17 @@
     created() {
       this.loadDynamicData();
     },
+    computed: {
+      tableColumn: function() {
+          var e = this;
+          if (!this.settingColumns || this.settingColumns.length <= 0)
+              return this.defColumns;
+          var t = this.defColumns.filter(function(t) {
+              return "rowIndex" == t.key || "action" == t.dataIndex || !!e.settingColumns.includes(t.dataIndex)
+          });
+          return t
+      },
+    },
     methods: {
       loadDynamicData() {
         var component = this;
@@ -149,13 +162,17 @@
         getAction('/online/cgform/api/getColumns/' + dynamicId, {}).then((res) => {
           if (res.success) {
             var collect = {};
-            this.columns = res.result.columns.concat([this.actionColumn]);
+            this.columns = res.result.columns
             this.dictOptions = res.result.dictOptions;
-            this.columns.forEach(column => {
+
+            this.settingColumns = [];
+            this.defColumns = res.result.columns.concat([this.actionColumn]);
+            this.defColumns.forEach(column => {
               handleColumnHrefAndDict(component, column, collect)
               if (column.scopedSlots === null) {        //组件bug，null会报错
                 column.scopedSlots = undefined
               }
+              this.settingColumns.push(column.dataIndex)
             });
             this.loadData(1);
           }else{
@@ -218,12 +235,26 @@
       onChangeFieldShow(checked, ev) {
         console.log(`a-switch to ${checked} ${ev.target}`)
         var index = ev.target.getAttribute('v-data-index')
+        if (checked) {
+          this.settingColumns.indexOf(index) == -1 && this.settingColumns.push(index);
+        } else {
+          this.settingColumns.indexOf(index) > -1 && this.settingColumns.splice(this.settingColumns.indexOf(index), 1);
+        }
       },
       executeFilter(param) {
         var param = this.$refs.filter.queryParamsModel;
         param = removeEmptyObject(param)
         console.log(param)
         this.handleSuperQuery(param, 'and');
+      },
+      settingColumnsHandler: function(e) {
+          var t = this
+            , n = vue__WEBPACK_IMPORTED_MODULE_11___default.a.ls.get(this.localCode);
+          n && 0 != n.length ? this.settingColumns = n.split(",") : (this.settingColumns = [],
+          e.forEach((function(e) {
+              t.settingColumns.indexOf(e["dataIndex"]) < 0 && t.settingColumns.push(e["dataIndex"])
+          }
+          )))
       }
     }
   }
