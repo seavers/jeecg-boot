@@ -627,3 +627,22 @@ export function aspectAroundFunction(obj, funcName, callback) {
     })
   }
 }
+
+// 去掉数组中的空对象
+export function removeEmptyObject(arr) {
+  let array = cloneObject(arr)
+  for (let i = 0; i < array.length; i++) {
+    let item = array[i]
+    if (item == null || Object.keys(item).length <= 0) {
+      array.splice(i--, 1)
+    } else {
+      if (Array.isArray(item.options)) {
+        // 如果有字典属性，就不需要保存 options 了
+        //update-begin-author:taoyan date:20200819 for:【开源问题】 高级查询 下拉框作为并且选项很多多多 LOWCOD-779
+        delete item.options
+        //update-end-author:taoyan date:20200819 for:【开源问题】 高级查询 下拉框作为并且选项很多多多 LOWCOD-779
+      }
+    }
+  }
+  return array
+}

@@ -301,6 +301,7 @@
       },
       close() {
         this.$emit('close')
+        this.$emit('handleSuperQuery', this.queryParamsModel)
         this.visible = false
       },
       handleAdd() {
@@ -342,6 +343,18 @@
         this.resetLine()
         this.emitCallback({}, true)
       },
+      handleTreeSelect(idx, event) {
+        if (event.selectedNodes[0]) {
+          let { matchType, records } = event.selectedNodes[0].data.props
+          // 将保存的matchType取出，兼容旧数据，如果没有保存就还是使用原来的
+          this.matchType = matchType || this.matchType
+          this.queryParamsModel = utils.cloneObject(records)
+        }
+      },
+
+
+
+      //SaveTree
       handleSave() {
         let queryParams = this.removeEmptyObject(this.queryParamsModel)
         if (this.isNullArray(queryParams)) {
@@ -385,14 +398,7 @@
           this.$message.success('保存成功')
         }
       },
-      handleTreeSelect(idx, event) {
-        if (event.selectedNodes[0]) {
-          let { matchType, records } = event.selectedNodes[0].data.props
-          // 将保存的matchType取出，兼容旧数据，如果没有保存就还是使用原来的
-          this.matchType = matchType || this.matchType
-          this.queryParamsModel = utils.cloneObject(records)
-        }
-      },
+
       handleRemoveSaveTreeItem(event, vNode) {
         // 阻止事件冒泡
         event.stopPropagation()
