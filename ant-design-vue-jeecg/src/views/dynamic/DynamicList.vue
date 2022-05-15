@@ -2,22 +2,15 @@
   <a-row :gutter="10">
       <a-card :bordered="false">
           <!-- 功能区域 -->
-        <div class="table-page-toolbar-wrapper">
-          <a-popover title="字段配置" placement="bottom" trigger="click">
+        <div class="table-page-toolbar">
+          <a-popover title="字段配置" placement="bottom" trigger="click" overlayClassName="dynamic-popover-overlay">
             <template #content>
-              <a-list :data-source="columns">
-                  <a-list-item slot="renderItem" slot-scope="item, index">
-                    <a-icon type="menu" />
-                    <span>{{ item.title }}</span>
-                    <a-switch default-checked @change="onChangeFieldShow" :v-data-index="item.dataIndex"/>
-                  </a-list-item>
-              </a-list>
-              <p><a-button icon="plus">新增字段</a-button></p>
+              <dynamic-field-list :columns="columns" :settingColumns="settingColumns" @change="handleFieldChanged"></dynamic-field-list>
             </template>
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
-          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="executeFilter">
+          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="executeFilter" overlayClassName="dynamic-popover-overlay">
             <template #content>
               <j-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>
@@ -75,6 +68,7 @@
   import { filterObj, removeEmptyObject } from '@/utils/util'
   import { handleGetSchema, schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
   import DynamicModal from '../dynamic/DynamicModal'
+  import DynamicFieldList from './modules/DynamicFieldList'
   import moment from 'moment'
 
   export default {
@@ -83,6 +77,7 @@
     components: {
       JFilterQuery,
       DynamicModal,
+      DynamicFieldList,
       moment
     },
     data() {
@@ -231,20 +226,15 @@
       handlePerssion(roleId){
         this.$refs.modalUserRole.show(roleId);
       },
-      onChangeFieldShow(checked, ev) {
-        console.log(`a-switch to ${checked} ${ev.target}`)
-        var index = ev.target.getAttribute('v-data-index')
-        if (checked) {
-          this.settingColumns.indexOf(index) == -1 && this.settingColumns.push(index);
-        } else {
-          this.settingColumns.indexOf(index) > -1 && this.settingColumns.splice(this.settingColumns.indexOf(index), 1);
-        }
-      },
       executeFilter(param) {
         var param = this.$refs.filter.queryParamsModel;
         param = removeEmptyObject(param)
         console.log(param)
         this.handleSuperQuery(param, 'and');
+      },
+      handleFieldChanged: function(settingColumns) {
+        this.settingColumns = settingColumns;
+        //this.loadData();   //有点问题
       },
       settingColumnsHandler: function(e) {
           var t = this
@@ -258,26 +248,22 @@
     }
   }
 </script>
+
+<style>
+  .dynamic-popover-overlay .ant-popover-inner-content {
+    padding: 0 3px;
+  }
+</style>
 <style scoped>
   /** Button按钮间距 */
   .ant-btn {
     margin-right: 8px
   }
-  .ant-popover .ant-popover-inner-content {
-    padding: 0;
-  }
-  .ant-popover-inner-content .ant-list-split .ant-list-item {
-    border-bottom: none;
-    padding: 4px 4px;
-  }
-  .ant-popover-inner-content .ant-list-split .ant-list-item:hover {
-    background: #eee;
-  }
 
-  .table-page-toolbar-wrapper {
+  .table-page-toolbar {
     display: flex;
   }
-  .table-page-toolbar-wrapper .btn-right-group {
+  .table-page-toolbar .btn-right-group {
     margin-left: auto;
   }
 </style>
