@@ -200,6 +200,10 @@ export const JeecgListMixin = {
         this.$message.error("请设置url.delete属性!")
         return
       }
+      if(this.url.delete.indexOf(":id") > -1) {
+        this.url.delete = this.url.delete.replace(":id", id)
+      }
+
       var that = this;
       deleteAction(that.url.delete, {id: id}).then((res) => {
         if (res.success) {

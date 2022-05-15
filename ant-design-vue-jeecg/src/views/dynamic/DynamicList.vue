@@ -17,13 +17,16 @@
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
-          <a-popover title="字段配置" placement="bottom" trigger="click" @visibleChange="executeFilter">
+          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="executeFilter">
             <template #content>
               <j-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>
             <a-button type="primary" icon="filter">筛选</a-button>
           </a-popover>
           
+          <span class="btn-right-group">
+            <a-button type="primary" icon="plus" @click="handleAdd()">新增</a-button>
+          </span>
         </div>
 
         <div style="margin-top: 15px">
@@ -40,7 +43,7 @@
             :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange, type:'radio'}"
             @change="handleTableChange">
           <span slot="action" slot-scope="text, record">
-            <a @click="handleOpen(record)">编辑</a>
+            <a @click="handleEdit(record)">编辑</a>
             <a-divider type="vertical"/>
 
             <a-dropdown>
@@ -61,7 +64,7 @@
         </span>
           </a-table>
         </div>
-        <role-modal ref="modalForm" @ok="modalFormOk"></role-modal>
+        <dynamic-modal ref="modalForm" :columns="formColumns" @ok="modalFormOk"></dynamic-modal>
       </a-card>
   </a-row>
 </template>
@@ -69,12 +72,9 @@
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
   import JFilterQuery from '@/components/jeecg/JFilterQuery.vue';
   import { deleteAction, postAction, getAction } from '@/api/manage'
-  import SelectUserModal from '../system/modules/SelectUserModal'
-  import RoleModal from '../system/modules/RoleModal'
-  import UserModal from '../system/modules/UserModal'
   import { filterObj, removeEmptyObject } from '@/utils/util'
-  import { schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
-  import UserRoleModal from '../system/modules/UserRoleModal'
+  import { handleGetSchema, schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
+  import DynamicModal from '../dynamic/DynamicModal'
   import moment from 'moment'
 
   export default {
@@ -82,10 +82,7 @@
     mixins: [JeecgListMixin],
     components: {
       JFilterQuery,
-      UserRoleModal,
-      SelectUserModal,
-      RoleModal,
-      UserModal,
+      DynamicModal,
       moment
     },
     data() {
@@ -107,6 +104,7 @@
           total: 0
         },
         defColumns: [],
+        formColumns: [],
         settingColumns: [],
         actionColumn: {
             title: "操作",
@@ -132,9 +130,8 @@
         ],
 
         url: {
-          list: '/online/cgform/api/getData/',
-          delete: '/sys/role/delete',
-          addUserRole: '/sys/user/addSysUserRole',
+          list: '/online/cgform/api/getData/' + this.$route.params.code,
+          delete: '/online/cgform/api/form/' + this.$route.params.code + "/:id",
           exportXlsUrl: 'sys/role/exportXls',
           importExcelUrl: 'sys/role/importExcel'
         }
@@ -158,11 +155,10 @@
       loadDynamicData() {
         var component = this;
         var dynamicId = this.$route.params.code;
-        this.url.list = this.url.list + dynamicId;
         getAction('/online/cgform/api/getColumns/' + dynamicId, {}).then((res) => {
           if (res.success) {
             var collect = {};
-            this.columns = res.result.columns
+            this.columns = res.result.columns;
             this.dictOptions = res.result.dictOptions;
 
             this.settingColumns = [];
@@ -188,6 +184,13 @@
             this.$message.warning(res.message)
           }
         })
+        getAction('/online/cgform/api/getFormItem/' + dynamicId, {}).then((res) => {
+          if (res.success) {
+            handleGetSchema(this, res.result.schema)
+          }else{
+            this.$message.warning(res.message)
+          }
+        })
       },
       onClearSelected() {
         this.selectedRowKeys = []
@@ -200,10 +203,6 @@
         this.model = Object.assign({}, selectionRows[0])
         console.log(this.model)
         this.currentRoleId = selectedRowKeys[0]
-      },
-      handleDelete: function(id) {
-        this.handleDelete(id)
-        this.currentRoleId = ''
       },
       selectOK(data) {
         let params = {}
@@ -273,5 +272,12 @@
   }
   .ant-popover-inner-content .ant-list-split .ant-list-item:hover {
     background: #eee;
+  }
+
+  .table-page-toolbar-wrapper {
+    display: flex;
+  }
+  .table-page-toolbar-wrapper .btn-right-group {
+    margin-left: auto;
   }
 </style>

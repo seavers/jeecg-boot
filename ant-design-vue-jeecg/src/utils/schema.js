@@ -1,8 +1,7 @@
 import { filterMultiDictText } from '@/components/dict/JDictSelectUtil'
 
 
-export function handleGetSchema(e) {
-  var t = this;
+export function handleGetSchema(t, e) {
   e && e.properties && function() {
       var n = function(e, t) {
           var n = t.view || t.type || "string";
@@ -77,7 +76,7 @@ export function handleGetSchema(e) {
               s.order > l.order && (a[o] = l,
               a[c] = s)
           }
-      t.superQueryFieldList = a
+      t.formColumns = a
   }()
 }
 
