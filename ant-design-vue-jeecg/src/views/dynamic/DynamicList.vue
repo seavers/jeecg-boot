@@ -10,7 +10,7 @@
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
-          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="executeFilter" overlayClassName="dynamic-popover-overlay">
+          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay">
             <template #content>
               <j-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>
@@ -226,7 +226,10 @@
       handlePerssion(roleId){
         this.$refs.modalUserRole.show(roleId);
       },
-      executeFilter(param) {
+      filterVisibleChange(visible) {
+        if(visible || !this.$refs.filter) {
+          return;
+        }
         var param = this.$refs.filter.queryParamsModel;
         param = removeEmptyObject(param)
         console.log(param)
