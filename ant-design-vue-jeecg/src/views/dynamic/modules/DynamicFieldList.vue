@@ -1,8 +1,8 @@
 <template>
   <div class="dynamic-field-list">
     <a-list :data-source="columns">
-      <a-list-item slot="renderItem" slot-scope="item, index" draggable="true" @dragstart.native="dragStart($event, item)" @dragend.native="dragEnd($event)">
-        <a-icon class="dragbar" type="menu" />
+      <a-list-item slot="renderItem" slot-scope="item, index" >
+        <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
         <span class="title">{{ item.title }}</span>
         <a-switch size="small" :checked="settingColumns.indexOf(item.dataIndex)>-1" @change="onChangeFieldShow" :v-data-index="item.dataIndex"/>
       </a-list-item>
@@ -13,11 +13,11 @@
 
 <script>
   import { httpAction } from '@/api/manage'
-  import { DragSortMixin } from '@/mixins/DragSortMixin'
+  import { MoveSortMixin } from '@/mixins/MoveSortMixin'
 
   export default {
     name: "DynamicFieldList",
-    mixins: [DragSortMixin],
+    mixins: [MoveSortMixin],
     data () {
       return {
         dragging: null,
@@ -57,6 +57,9 @@
   }
   .dynamic-field-list .dynamic-field-list-sorting .ant-list-item {
     transition: top 0.36s;
+  }
+  .dynamic-field-list .dynamic-field-list-sorting .ant-list-item.dragging {
+    transition: none;
   }
   .dynamic-field-list .ant-list-item:hover {
     background: #eee;
