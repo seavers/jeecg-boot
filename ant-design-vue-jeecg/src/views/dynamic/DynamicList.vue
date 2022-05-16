@@ -3,14 +3,14 @@
       <a-card :bordered="false">
           <!-- 功能区域 -->
         <div class="table-page-toolbar">
-          <a-popover title="字段配置" placement="bottom" trigger="click" overlayClassName="dynamic-popover-overlay">
+          <a-popover title="字段配置" placement="bottom" trigger="click" overlayClassName="dynamic-popover-overlay-field">
             <template #content>
               <dynamic-field-list :columns="columns" :settingColumns="settingColumns" @change="handleFieldChanged"></dynamic-field-list>
             </template>
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
-          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay">
+          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay-filter">
             <template #content>
               <j-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>
@@ -253,9 +253,31 @@
 </script>
 
 <style>
-  .dynamic-popover-overlay .ant-popover-inner-content {
+  .dynamic-popover-overlay-field .ant-popover-inner-content {
     padding: 0 3px;
   }
+
+  @media screen and (max-width: 576px) {
+    .dynamic-popover-overlay-filter {
+      display: flex;
+      justify-content: space-between;
+    }
+    .dynamic-popover-overlay-filter .ant-popover-content{
+      flex-grow: 1;
+      margin: 0 20px;
+    }
+    .dynamic-popover-overlay-filter .ant-popover-content{
+      width: 322px;
+      max-width: 322px;
+    }
+  }
+
+  @media screen and (min-width: 576px) {
+    .dynamic-popover-overlay-filter .ant-popover-content{
+      width: 600px;
+    }
+  }
+
 </style>
 <style scoped>
   /** Button按钮间距 */

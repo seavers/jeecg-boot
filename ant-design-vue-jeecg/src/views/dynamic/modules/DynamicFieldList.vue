@@ -50,7 +50,6 @@
     width: 200px;
     border-bottom: none;
     padding: 0;
-    width: 100%;
     display: flex;
     justify-content: space-between;
     padding: 4px 4px;

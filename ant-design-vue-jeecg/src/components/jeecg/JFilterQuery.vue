@@ -1,7 +1,7 @@
 <template>
 <div class="j-super-query-box">
     <a-spin :spinning="loading">
-      <a-row style="width:600px">
+      <a-row style="width: 600px">
           <a-form layout="inline">
 
             <a-row type="flex" style="margin-bottom:10px" :gutter="16" v-for="(item, index) in queryParamsModel" :key="index">
@@ -116,7 +116,7 @@
           </a-form>
       </a-row>
       <a-row>
-        <a @click="handleAdd" icon="plus">添加条件</a>
+        <a @click="handleAdd">+ 添加条件</a>
       </a-row>
     </a-spin>
 </div>
