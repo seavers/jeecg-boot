@@ -1,7 +1,7 @@
 <template>
   <div class="dynamic-field-list">
     <a-list :data-source="columns">
-      <a-list-item slot="renderItem" slot-scope="item, index" draggable="true" @dragstart.native="dragStart($event, item)" @dragenter="dragEnter($event)" @dragover="dragOver($event)" @dragleave="dragLeave($event)" @dragend.native="dragEnd($event)">
+      <a-list-item slot="renderItem" slot-scope="item, index" draggable="true" @dragstart.native="dragStart($event, item)" @dragend.native="dragEnd($event)">
         <div class="dynamic-field-item-wrap">
           <a-icon class="dragbar" type="menu" />
           <span class="title">{{ item.title }}</span>
@@ -44,7 +44,7 @@
 
       dragStart(e) {
         console.log("drag-start", e, e.target);
-        this.dragging = e.target;
+        this.dragging = this.dragTarget = e.target;
 
         //e.preventDefault();
         e.dataTransfer.effectAllowed = 'move';
@@ -52,65 +52,56 @@
 
         document.querySelector('.dynamic-field-list').classList.add("dynamic-field-list-sorting")
         e.target.parentNode.childNodes.forEach(function(el, index) {
-          el.style = 'position:relative';
-          el.firstChild.style = "position:relative;top: 0px";
+          //el.style = 'position:relative';
+          el.style = "position:relative;top: 0px";
           el.index = index;
         })
 
         setTimeout(() => {
-          e.target.firstChild.style="opacity: 0;z-index:1";
+          e.target.style="opacity: 0.3;z-index:1";
         }, 10);
       },
       dragEnter(e) {
-        console.log("drag-enter", this.dragging.index, e.currentTarget.index );
         if (this.dragging == null) {
           return ;
         }
-        //e.preventDefault();
-        //console.log(this.dragging.innerText, e.currentTarget.innerText, e.currentTarget.nextSibling.innerText);
-        this.dragTarget = e.currentTarget;
-        var target = e.currentTarget;
-        var dragging = this.dragging;
+        //console.log("drag-enter", e, this.dragging.innerText, e.currentTarget.innerText );
         var clientHeight = this.dragging.clientHeight;
 
-        //调整顺序
-        dragging.parentNode.childNodes.forEach(function(el, index) {
-          if(el == dragging) {
-            return;
-          }
+        this.dragTarget = e.currentTarget;
+        var clientHeight = this.dragging.clientHeight;
 
-          if(dragging.index == target.index) {
-            el.firstChild.style = "position:relative;top: 0px";
-          } else if(index < target.index && index < dragging.index) {
-            el.firstChild.style = "position:relative;top: 0px";
-          } else if(index > target.index && index > dragging.index) {
-            el.firstChild.style = "position:relative;top: 0px";
-          } else if(dragging.index < target.index) {
-            el.firstChild.style = "position:relative;top: -" + (clientHeight) + "px";
-          } else {
-            el.firstChild.style = "position:relative;top: " + (clientHeight) + "px";
-          }
-        });
+        var offsetY = this.offset(e);
+        var targetIndex = Math.round(offsetY / clientHeight);
+
+        if(this.dragIndex != targetIndex) {
+          this.changePosition(targetIndex);
+          this.dragIndex = targetIndex;
+        }
 
         e.preventDefault();
       },
       dragOver(e) {
-        e.preventDefault();
+        if(this.dragging != null) {
+          e.preventDefault();
+        }
       },
       dragLeave(e) {
         //console.log("drag-leave", this.dragging.index, e.currentTarget.index );
       },
       dragEnd(e) {
         console.log("drag-end", this.dragging, this.dragTarget);
-        this.dragging.firstChild.style.cssText = "opacity:1;z-index:0";
+        this.dragging.style.cssText = "opacity:1;z-index:0";
         document.querySelector('.dynamic-field-list').classList.remove("dynamic-field-list-sorting")
         this.dragging.parentNode.childNodes.forEach(function(el, index) {
-          el.firstChild.style.cssText = 'position:relative;top:0px';
+          el.style.cssText = 'position:relative;top:0px';
         })
 
+        this.dragTarget = this.dragging.parentNode.childNodes[this.dragIndex];
         if (this.dragging === this.dragTarget) {
           return ;
         }
+        
         if (this.dragging.index < this.dragTarget.index) {
           this.dragging.parentNode.insertBefore(this.dragging, this.dragTarget.nextSibling)
         } else {
@@ -120,6 +111,36 @@
         this.dragging = null;
       },
 
+
+      changePosition(targetIndex) {
+        //var targetIndex = target.index;
+        var dragging = this.dragging;
+        var clientHeight = this.dragging.clientHeight;
+
+        //调整顺序
+        dragging.parentNode.childNodes.forEach(function(el, index) {
+          if(el == dragging) {
+            return;
+          }
+
+          if(dragging.index == targetIndex) {
+            el.style = "position:relative;top: 0px";
+          } else if(index < targetIndex && index < dragging.index) {
+            el.style = "position:relative;top: 0px";
+          } else if(index > targetIndex && index > dragging.index) {
+            el.style = "position:relative;top: 0px";
+          } else if(dragging.index < targetIndex) {
+            el.style = "position:relative;top: -" + (clientHeight) + "px";
+          } else {
+            el.style = "position:relative;top: " + (clientHeight) + "px";
+          }
+        });
+      },
+      offset(e) {
+        var offset = e.clientY;
+        var listElement = document.querySelector('.dynamic-field-list .ant-list-items');
+        return offset-listElement.getBoundingClientRect().top;
+      }
 
 //         let targetTop = e.target.getBoundingClientRect().top
 //         let dragingTop = this.getBoundingClientRect().top
@@ -140,6 +161,12 @@
 //           this._animation(dragingTop, this.draging) 
 //         }
 //      }
+    },
+    mounted() {
+      document.addEventListener("dragover", this.dragEnter);
+    },
+    beforeDestroy() {
+      document.removeEventListener("dragover", this.dragEnter);
     }
   }
 </script>
@@ -157,7 +184,7 @@
     justify-content: space-between;
     padding: 4px 4px;
   }
-  .dynamic-field-list-sorting .dynamic-field-item-wrap {
+  .dynamic-field-list-sorting  .ant-list-item {
     transition: top 0.36s;
   }
   .dynamic-field-list .dynamic-field-item-wrap .dragbar {
