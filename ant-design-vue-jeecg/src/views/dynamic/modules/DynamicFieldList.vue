@@ -1,7 +1,7 @@
 <template>
   <div class="dynamic-field-list">
     <a-list :data-source="columns">
-      <a-list-item slot="renderItem" slot-scope="item, index" draggable="true" @dragstart.native="dragStart($event, item)" @dragover="dragOver($event)" @dragend.native="dragEnd($event)">
+      <a-list-item slot="renderItem" slot-scope="item, index" draggable="true" @dragstart.native="dragStart($event, item)" @dragenter="dragEnter($event)" @dragover="dragOver($event)" @dragleave="dragLeave($event)" @dragend.native="dragEnd($event)">
         <div class="dynamic-field-item-wrap">
           <a-icon class="dragbar" type="menu" />
           <span class="title">{{ item.title }}</span>
@@ -20,7 +20,8 @@
     name: "DynamicFieldList",
     data () {
       return {
-        dragging: null
+        dragging: null,
+        nodes: [],
       }
     },
     props: {
@@ -42,7 +43,7 @@
 
 
       dragStart(e) {
-        //console.log("drop-start", e, e.target);
+        console.log("drag-start", e, e.target);
         this.dragging = e.target;
 
         //e.preventDefault();
@@ -52,32 +53,56 @@
         document.querySelector('.dynamic-field-list').classList.add("dynamic-field-list-sorting")
         e.target.parentNode.childNodes.forEach(function(el, index) {
           el.style = 'position:relative';
+          el.firstChild.style = "position:relative;top: 0px";
           el.index = index;
         })
 
         setTimeout(() => {
-          e.target.firstChild.style="visibility: hidden";
+          e.target.firstChild.style="opacity: 0;z-index:1";
         }, 10);
       },
-      dragOver(e) {
+      dragEnter(e) {
+        console.log("drag-enter", this.dragging.index, e.currentTarget.index );
+        if (this.dragging == null) {
+          return ;
+        }
         //e.preventDefault();
         //console.log(this.dragging.innerText, e.currentTarget.innerText, e.currentTarget.nextSibling.innerText);
         this.dragTarget = e.currentTarget;
-
         var target = e.currentTarget;
-        if(target.parentNode == this.dragging.parentNode && target != this.dragging) {
-          if (this.dragging.index > target.index) {
-            target.firstChild.style = "position:relative;top: " + (this.dragging.clientHeight) + "px"
-          } else if (this.dragging.index < target.index){
-            target.firstChild.style = "position:relative;top: -" + (this.dragging.clientHeight) + "px"
+        var dragging = this.dragging;
+        var clientHeight = this.dragging.clientHeight;
+
+        //调整顺序
+        dragging.parentNode.childNodes.forEach(function(el, index) {
+          if(el == dragging) {
+            return;
           }
-        }
+
+          if(dragging.index == target.index) {
+            el.firstChild.style = "position:relative;top: 0px";
+          } else if(index < target.index && index < dragging.index) {
+            el.firstChild.style = "position:relative;top: 0px";
+          } else if(index > target.index && index > dragging.index) {
+            el.firstChild.style = "position:relative;top: 0px";
+          } else if(dragging.index < target.index) {
+            el.firstChild.style = "position:relative;top: -" + (clientHeight) + "px";
+          } else {
+            el.firstChild.style = "position:relative;top: " + (clientHeight) + "px";
+          }
+        });
 
         e.preventDefault();
       },
+      dragOver(e) {
+        e.preventDefault();
+      },
+      dragLeave(e) {
+        //console.log("drag-leave", this.dragging.index, e.currentTarget.index );
+      },
       dragEnd(e) {
         console.log("drag-end", this.dragging, this.dragTarget);
-        this.dragging.firstChild.style.cssText = "visibility: visible";
+        this.dragging.firstChild.style.cssText = "opacity:1;z-index:0";
         document.querySelector('.dynamic-field-list').classList.remove("dynamic-field-list-sorting")
         this.dragging.parentNode.childNodes.forEach(function(el, index) {
           el.firstChild.style.cssText = 'position:relative;top:0px';
@@ -92,6 +117,7 @@
           this.dragging.parentNode.insertBefore(this.dragging, this.dragTarget)
         }
 
+        this.dragging = null;
       },
 
 
