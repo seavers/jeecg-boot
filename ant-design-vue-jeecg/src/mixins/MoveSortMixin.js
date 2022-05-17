@@ -108,7 +108,7 @@ export const MoveSortMixin = {
    },
    bubble(el) {
     while(el != null) {
-      if(el.tagName == 'LI') {
+      if(el.tagName == 'LI' || el.classList.contains("ant-row") || el.classList.contains("ant-row-flex")) {
         return el;
       }
       el = el.parentNode

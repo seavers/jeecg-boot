@@ -16,6 +16,13 @@
             </template>
             <a-button type="primary" icon="filter">筛选</a-button>
           </a-popover>
+
+          <a-popover title="排序" placement="bottom" trigger="click" @visibleChange="sortVisibleChange" overlayClassName="dynamic-popover-overlay-sort">
+            <template #content>
+              <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortColumns="sortColumns" @handleSortQuery="handleSortQuery"/>
+            </template>
+            <a-button type="primary" icon="sort">排序</a-button>
+          </a-popover>
           
           <span class="btn-right-group">
             <a-button type="primary" icon="plus" @click="handleAdd()">新增</a-button>
@@ -69,6 +76,7 @@
   import { handleGetSchema, schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
   import DynamicModal from '../dynamic/DynamicModal'
   import DynamicFieldList from './modules/DynamicFieldList'
+  import DynamicSortQuery from './modules/DynamicSortQuery'
   import moment from 'moment'
 
   export default {
@@ -78,6 +86,7 @@
       JFilterQuery,
       DynamicModal,
       DynamicFieldList,
+      DynamicSortQuery,
       moment
     },
     data() {
@@ -101,6 +110,7 @@
         defColumns: [],
         formColumns: [],
         settingColumns: [],
+        sortColumns: [],
         actionColumn: {
             title: "操作",
             dataIndex: "action",
@@ -235,6 +245,38 @@
         console.log(param)
         this.handleSuperQuery(param, 'and');
       },
+      sortVisibleChange(visible) {
+        if(visible || !this.$refs.sort) {
+          return;
+        }
+        var param = this.$refs.sort.sortParamsModel;
+        param = removeEmptyObject(param)
+        this.sortParamsModel = param
+        console.log(param)
+
+        if (param.length > 0) {
+          this.isorter = {column:param[0].field, order:param[0].order};      //其余的前端排序
+          this.loadData(1);
+        }
+      },
+      handleResultAfter() {
+        var params = this.sortParamsModel;
+        if(params != null && params.length > 1) {
+          this.dataSource.sort(function(a, b) {
+            for(var i = 0; i < params.length; i++) {
+              var model = params[i];
+              if(a[model.field] == b[model.field]) {
+                continue;
+              } if (a[model.field] < b[model.field]) {
+                return model.order == 'asc' ? -1 : 1;
+              } else {
+                return model.order == 'asc' ? 1 : -1;
+              }
+            }
+            return 0;
+          });
+        }
+      },
       handleFieldChanged: function(settingColumns) {
         this.settingColumns = settingColumns;
         //this.loadData();   //有点问题
@@ -247,6 +289,10 @@
               t.settingColumns.indexOf(e["dataIndex"]) < 0 && t.settingColumns.push(e["dataIndex"])
           }
           )))
+      },
+
+      handleSortQuery() {
+
       }
     }
   }
@@ -258,17 +304,14 @@
   }
 
   @media screen and (max-width: 576px) {
-    .dynamic-popover-overlay-filter {
-      display: flex;
-      justify-content: space-between;
+    .dynamic-popover-overlay-filter .ant-popover-content {
+      margin: 0 15px;
     }
-    .dynamic-popover-overlay-filter .ant-popover-content{
-      flex-grow: 1;
-      margin: 0 20px;
-    }
-    .dynamic-popover-overlay-filter .ant-popover-content{
-      width: 322px;
-      max-width: 322px;
+  }
+
+  @media screen and (max-width: 576px) {
+    .dynamic-popover-overlay-sort .ant-popover-content {
+      margin: 0 15px;
     }
   }
 

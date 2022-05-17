@@ -1,12 +1,13 @@
 <template>
-<div class="j-super-query-box">
+<div class="j-sort-query-box">
     <a-spin :spinning="loading">
       <a-row>
           <a-form layout="inline">
 
-            <a-row type="flex" style="margin-bottom:10px" :gutter="16" v-for="(item, index) in queryParamsModel" :key="index">
+            <a-row type="flex" drag-target="true" style="margin-bottom:12px" :gutter="16" v-for="(item, index) in sortParamsModel" :key="index">
+              <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
 
-              <a-col :md="8" :xs="24" style="margin-bottom: 12px;">
+              <a-col class="sort-field">
                 <a-tree-select
                   v-model="item.field"
                   :treeData="fieldTreeData"
@@ -21,96 +22,15 @@
                 </a-tree-select>
               </a-col>
 
-              <a-col :md="6" :xs="24" style="margin-bottom: 12px;">
-                <a-select placeholder="匹配规则" :value="item.rule" :getPopupContainer="node=>node.parentNode" @change="handleRuleChange(item,$event)">
-                  <a-select-option value="eq">等于</a-select-option>
-                  <a-select-option value="like">包含</a-select-option>
-                  <a-select-option value="right_like">以..开始</a-select-option>
-                  <a-select-option value="left_like">以..结尾</a-select-option>
-                  <a-select-option value="in">在...中</a-select-option>
-                  <a-select-option value="ne">不等于</a-select-option>
-                  <a-select-option value="gt">大于</a-select-option>
-                  <a-select-option value="ge">大于等于</a-select-option>
-                  <a-select-option value="lt">小于</a-select-option>
-                  <a-select-option value="le">小于等于</a-select-option>
-                </a-select>
+              <a-col >
+                <a-radio-group v-model="item.order" defaultValue="asc" buttonStyle="solid">
+                  <a-radio-button value="asc">1-9</a-radio-button>
+                  <a-radio-button value="desc">9-1</a-radio-button>
+                </a-radio-group>
               </a-col>
-
-              <a-col :md="8" :xs="24" style="margin-bottom: 12px;">
-                <!-- 下拉搜索 -->
-                <j-search-select-tag v-if="item.type==='sel_search'" v-model="item.val" :dict="getDictInfo(item)" placeholder="请选择"/>
-                <!-- 下拉多选 -->
-                <template v-else-if="item.type==='list_multi'">
-                  <j-multi-select-tag v-if="item.options" v-model="item.val" :options="item.options" placeholder="请选择"/>
-                  <j-multi-select-tag v-else v-model="item.val" :dictCode="getDictInfo(item)" placeholder="请选择"/>
-                </template>
-
-                <template v-else-if="item.dictCode">
-                  <template v-if="item.type === 'table-dict'">
-                    <j-popup
-                      v-model="item.val"
-                      :code="item.dictTable"
-                      :field="item.dictCode"
-                      :orgFields="item.dictCode"
-                      :destFields="item.dictCode"
-                      :multi="true"
-                    ></j-popup>
-                  </template>
-                  <template v-else>
-                    <j-multi-select-tag v-show="allowMultiple(item)" v-model="item.val" :dictCode="item.dictCode" placeholder="请选择"/>
-                    <j-dict-select-tag v-show="!allowMultiple(item)" v-model="item.val" :dictCode="item.dictCode" placeholder="请选择"/>
-                  </template>
-                </template>
-                <j-popup
-                  v-else-if="item.type === 'popup'"
-                  :value="item.val"
-                  v-bind="item.popup"
-                  group-id="superQuery"
-                  @input="(e,v)=>handleChangeJPopup(item,e,v)"
-                  :multi="true"/>
-                <j-select-multi-user
-                  v-else-if="item.type === 'select-user' || item.type === 'sel_user'"
-                  v-model="item.val"
-                  :buttons="false"
-                  :multiple="false"
-                  placeholder="请选择用户"
-                  :returnKeys="['id', item.customReturnField || 'username']"
-                />
-                <j-select-depart
-                  v-else-if="item.type === 'select-depart' || item.type === 'sel_depart'"
-                  v-model="item.val"
-                  :multi="false"
-                  placeholder="请选择部门"
-                  :customReturnField="item.customReturnField || 'id'"
-                />
-                <a-select
-                  v-else-if="item.options instanceof Array"
-                  v-model="item.val"
-                  :options="item.options"
-                  allowClear
-                  placeholder="请选择"
-                  :mode="allowMultiple(item)?'multiple':''"
-                />
-                <j-area-linkage v-model="item.val" v-else-if="item.type==='area-linkage' || item.type==='pca'" style="width: 100%"/>
-                <j-date v-else-if=" item.type=='date' " v-model="item.val" placeholder="请选择日期" style="width: 100%"></j-date>
-                <j-date v-else-if=" item.type=='datetime' " v-model="item.val" placeholder="请选择时间" :show-time="true" date-format="YYYY-MM-DD HH:mm:ss" style="width: 100%"></j-date>
-                <a-time-picker v-else-if="item.type==='time'" :value="item.val ? moment(item.val,'HH:mm:ss') : null" format="HH:mm:ss" style="width: 100%" @change="(time,value)=>item.val=value"/>
-                <a-input-number v-else-if=" item.type=='int'||item.type=='number' " style="width: 100%" placeholder="请输入数值" v-model="item.val"/>
-                <a-select v-else-if="item.type=='switch'" placeholder="请选择" v-model="item.val">
-                  <a-select-option value="Y">是</a-select-option>
-                  <a-select-option value="N">否</a-select-option>
-                </a-select>
-                <a-input v-else v-model="item.val" placeholder="请输入值"/>
+              <a-col>
+                <a-icon @click="handleDel( index )" type="close" />
               </a-col>
-
-              <a-col :md="2" :xs="0" style="margin-bottom: 12px;">
-                <a-button @click="handleDel( index )" icon="close"></a-button>
-              </a-col>
-
-              <a-col :md="0" :xs="24" style="margin-bottom: 12px;text-align: right;">
-                <a-button @click="handleDel( index )" icon="close"></a-button>
-              </a-col>
-
             </a-row>
 
           </a-form>
@@ -125,18 +45,23 @@
 <script>
   import moment from 'moment'
   import * as utils from '@/utils/util'
-  import { mixinDevice } from '@/utils/mixin'
-  import JDate from '@/components/jeecg/JDate.vue'
-  import JSelectDepart from '@/components/jeecgbiz/JSelectDepart'
-  import JSelectMultiUser from '@/components/jeecgbiz/JSelectMultiUser'
-  import JMultiSelectTag from '@/components/dict/JMultiSelectTag'
-  import JAreaLinkage from '@comp/jeecg/JAreaLinkage'
+  import { MoveSortMixin } from '@/mixins/MoveSortMixin'
 
   export default {
-    name: 'JFilterQuery',
-    mixins: [mixinDevice],
-    components: { JAreaLinkage, JMultiSelectTag, JDate, JSelectDepart, JSelectMultiUser },
+    name: 'DynamicSortQuery',
+    mixins: [MoveSortMixin],
+    components: { },
     props: {
+      // columns: {
+      //   type: Array
+      // },
+      sortParamsModel: {
+        type: Array,
+        default: ()=>[]
+      },
+      sortColumns: {
+        type: Array
+      },
       /*
        fieldList: [{
           value:'',
@@ -184,7 +109,6 @@
         },
 
         visible: false,
-        queryParamsModel: [],
         treeIcon: <a-icon type="file-text"/>,
         // 保存查询条件的treeData
         saveTreeData: [],
@@ -254,7 +178,7 @@
 
     methods: {
       show() {
-        if (!this.queryParamsModel || this.queryParamsModel.length === 0) {
+        if (!this.sortParamsModel || this.sortParamsModel.length === 0) {
           this.resetLine()
         }
         this.visible = true
@@ -271,10 +195,10 @@
         return str
       },
       handleOk() {
-        if (!this.isNullArray(this.queryParamsModel)) {
+        if (!this.isNullArray(this.sortParamsModel)) {
           let event = {
             matchType: this.matchType,
-            params: this.removeEmptyObject(this.queryParamsModel)
+            params: this.removeEmptyObject(this.sortParamsModel)
           }
           // 移动端模式下关闭弹窗
           if (this.izMobile) {
@@ -301,22 +225,22 @@
       },
       close() {
         this.$emit('close')
-        this.$emit('handleSuperQuery', this.queryParamsModel)
+        this.$emit('handleSuperQuery', this.sortParamsModel)
         this.visible = false
       },
       handleAdd() {
         this.addNewLine()
       },
       addNewLine() {
-        this.queryParamsModel.push({ rule: 'eq' })
+        this.sortParamsModel.push({ order: 'asc' })
       },
       resetLine() {
         this.superQueryFlag = false
-        this.queryParamsModel = []
+        this.sortParamsModel = []
         this.addNewLine()
       },
       handleDel(index) {
-        this.queryParamsModel.splice(index, 1)
+        this.sortParamsModel.splice(index, 1)
       },
       handleSelected(node, item) {
         let { type, dbType, options, dictCode, dictTable, dictText, customReturnField, popup } = node.dataRef
@@ -348,7 +272,7 @@
           let { matchType, records } = event.selectedNodes[0].data.props
           // 将保存的matchType取出，兼容旧数据，如果没有保存就还是使用原来的
           this.matchType = matchType || this.matchType
-          this.queryParamsModel = utils.cloneObject(records)
+          this.sortParamsModel = utils.cloneObject(records)
         }
       },
 
@@ -356,7 +280,7 @@
 
       //SaveTree
       handleSave() {
-        let queryParams = this.removeEmptyObject(this.queryParamsModel)
+        let queryParams = this.removeEmptyObject(this.sortParamsModel)
         if (this.isNullArray(queryParams)) {
           this.$message.warning('空条件不能保存')
         } else {
@@ -371,7 +295,7 @@
           return
         }
         // 取出查询条件
-        let records = this.removeEmptyObject(this.queryParamsModel)
+        let records = this.removeEmptyObject(this.sortParamsModel)
         // 判断有没有重名的
         let filterList = this.saveTreeData.filter(i => i.originTitle === value)
         if (filterList.length > 0) {
@@ -511,19 +435,34 @@
 
 <style lang="less" scoped>
 
-
   @media screen and (max-width: 576px) {
-    .j-super-query-box {
+    .j-sort-query-box {
       max-width: 292px;
       min-width: 242px;
     }
   }
 
   @media screen and (min-width: 576px) {
-    .j-super-query-box {
+    .j-sort-query-box {
       width: 450px;
     }
   }
+
+  .j-sort-query-box .ant-row-flex {
+    align-items: center;
+  }
+
+  .j-sort-query-box .ant-form .anticon {
+    font-size: 16px;
+    padding: 4px;
+  }
+  .j-sort-query-box .ant-form .sort-field {
+    flex-grow: 1;
+  }
+  .j-sort-query-box .ant-form .anticon.dragbar {
+    cursor: pointer;
+  }
+
 
   .j-super-query-modal {
 
