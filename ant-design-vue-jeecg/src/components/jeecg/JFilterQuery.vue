@@ -521,7 +521,7 @@
 
   @media screen and (min-width: 576px) {
     .j-super-query-box {
-      width: 450px;
+      width: 560px;
     }
   }
 

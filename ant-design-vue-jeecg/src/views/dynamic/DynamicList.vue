@@ -307,12 +307,6 @@
     }
   }
 
-  @media screen and (min-width: 576px) {
-    .dynamic-popover-overlay-filter .ant-popover-content{
-      width: 600px;
-    }
-  }
-
 </style>
 <style scoped>
   /** Button按钮间距 */
