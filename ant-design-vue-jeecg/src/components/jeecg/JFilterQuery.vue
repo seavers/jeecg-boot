@@ -1,7 +1,7 @@
 <template>
 <div class="j-super-query-box">
     <a-spin :spinning="loading">
-      <a-row style="width: 600px">
+      <a-row>
           <a-form layout="inline">
 
             <a-row type="flex" style="margin-bottom:10px" :gutter="16" v-for="(item, index) in queryParamsModel" :key="index">
@@ -21,7 +21,7 @@
                 </a-tree-select>
               </a-col>
 
-              <a-col :md="4" :xs="24" style="margin-bottom: 12px;">
+              <a-col :md="6" :xs="24" style="margin-bottom: 12px;">
                 <a-select placeholder="匹配规则" :value="item.rule" :getPopupContainer="node=>node.parentNode" @change="handleRuleChange(item,$event)">
                   <a-select-option value="eq">等于</a-select-option>
                   <a-select-option value="like">包含</a-select-option>
@@ -103,7 +103,7 @@
                 <a-input v-else v-model="item.val" placeholder="请输入值"/>
               </a-col>
 
-              <a-col :md="4" :xs="0" style="margin-bottom: 12px;">
+              <a-col :md="2" :xs="0" style="margin-bottom: 12px;">
                 <a-button @click="handleDel( index )" icon="close"></a-button>
               </a-col>
 
@@ -511,9 +511,9 @@
 
 <style lang="less" scoped>
 
-  .j-super-query-box {
-    display: inline-block;
-  }
+  // .j-super-query-box {
+  //   display: block;
+  // }
 
   .j-super-query-modal {
 

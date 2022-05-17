@@ -3,14 +3,14 @@
       <a-card :bordered="false">
           <!-- 功能区域 -->
         <div class="table-page-toolbar">
-          <a-popover title="字段配置" placement="bottom" trigger="click" overlayClassName="dynamic-popover-overlay-field">
+          <a-popover title="字段配置" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay-field">
             <template #content>
               <dynamic-field-list :columns="columns" :settingColumns="settingColumns" @change="handleFieldChanged"></dynamic-field-list>
             </template>
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
-          <a-popover title="筛选" placement="bottom" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay-filter">
+          <a-popover title="筛选" placement="bottomLeft" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay-filter">
             <template #content>
               <j-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>

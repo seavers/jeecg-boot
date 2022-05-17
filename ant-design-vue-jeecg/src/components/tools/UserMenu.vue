@@ -70,21 +70,15 @@
           <a-icon type="setting"/>
           <span>测试</span>
         </a-menu-item>
-        <a-menu-divider/>
-        <a-menu-item key="3">
+        <a-menu-divider/>-->
+        <a-menu-item key="7">
           <a href="javascript:;" @click="handleLogout">
             <a-icon type="logout"/>
             <span>退出登录</span>
           </a>
-        </a-menu-item>-->
+        </a-menu-item>
       </a-menu>
     </a-dropdown>
-    <span class="action">
-      <a class="logout_title" href="javascript:;" @click="handleLogout">
-        <a-icon type="logout"/>
-        <span v-if="isDesktop()">&nbsp;退出登录</span>
-      </a>
-    </span>
     <user-password ref="userPassword"></user-password>
     <depart-select ref="departSelect" :closable="true" title="部门切换"></depart-select>
     <setting-drawer ref="settingDrawer" :closable="true" title="系统设置"></setting-drawer>
