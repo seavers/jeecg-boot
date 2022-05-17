@@ -24,8 +24,8 @@
 
               <a-col >
                 <a-radio-group v-model="item.order" defaultValue="asc" buttonStyle="solid">
-                  <a-radio-button value="asc">1-9</a-radio-button>
-                  <a-radio-button value="desc">9-1</a-radio-button>
+                  <a-radio-button value="asc">正序</a-radio-button>
+                  <a-radio-button value="desc">逆序</a-radio-button>
                 </a-radio-group>
               </a-col>
               <a-col>
