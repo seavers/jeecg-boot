@@ -429,6 +429,17 @@
         item.val = values[item.popup['destFields']]
       },
 
+      moveSortCall(dragIndex, targetIndex) {
+        var drag = this.sortParamsModel[dragIndex];
+        if(dragIndex < targetIndex) {
+          this.sortParamsModel.splice(targetIndex, 0, drag);
+          this.sortParamsModel.splice(dragIndex, 1)
+        } else if(dragIndex > targetIndex) {
+          this.sortParamsModel.splice(dragIndex, 1)
+          this.sortParamsModel.splice(targetIndex, 0, drag);
+        }
+        console.log(this.sortParamsModel)
+      }
     }
   }
 </script>

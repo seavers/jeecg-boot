@@ -40,6 +40,14 @@
 
         this.$emit("change", this.settingColumns)
       },
+
+
+      moveSortCall(dragIndex, targetIndex) {
+        var drag = this.settingColumns[dragIndex];
+        this.settingColumns.splice(dragIndex, 1)
+        this.settingColumns.splice(targetIndex, 0, drag);
+        console.log(this.settingColumns)
+      }
     }
   }
 </script>
