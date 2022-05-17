@@ -77,7 +77,7 @@ export const MoveSortMixin = {
        this.dragging.parentNode.insertBefore(this.dragging, dragTarget)
      }
 
-     this.moveSortCall(this.dragging.index, dragTarget.index)
+     this.moveSortCallback(this.dragging)
 
      this.dragging = null;
    },

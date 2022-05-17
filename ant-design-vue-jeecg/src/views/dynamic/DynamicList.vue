@@ -40,7 +40,7 @@
             :dataSource="dataSource"
             :pagination="ipagination"
             :loading="loading"
-            :rowSelection="{selectedRowKeys: selectedRowKeys, onChange: onSelectChange, type:'radio'}"
+            :rowSelection="{type:'checkbox'}"
             @change="handleTableChange">
           <span slot="action" slot-scope="text, record">
             <a @click="handleEdit(record)">编辑</a>
@@ -126,8 +126,6 @@
         },
         filters: {},
         loading: false,
-        selectedRowKeys: [],
-        selectionRows: [],
         test:{},
         rightcolval:0,
         columns: [],
@@ -148,12 +146,13 @@
     computed: {
       tableColumn: function() {
           var e = this;
-          if (!this.settingColumns || this.settingColumns.length <= 0)
-              return this.defColumns;
+          if (!this.settingColumns || this.settingColumns.length <= 0) {
+              return this.defColumns.concat([this.actionColumn]);
+          }
           var t = this.defColumns.filter(function(t) {
-              return "rowIndex" == t.key || "action" == t.dataIndex || !!e.settingColumns.includes(t.dataIndex)
+              return "rowIndex" == t.key || "action" == t.dataIndex || (t.listShow || t.listShow === undefined)
           });
-          return t
+          return t.concat([this.actionColumn])
       },
     },
     methods: {
@@ -163,11 +162,11 @@
         getAction('/online/cgform/api/getColumns/' + dynamicId, {}).then((res) => {
           if (res.success) {
             var collect = {};
-            this.columns = res.result.columns;
+            this.columns = res.result.columns.concat([]);        //隔离后用于fieldList
             this.dictOptions = res.result.dictOptions;
 
             this.settingColumns = [];
-            this.defColumns = res.result.columns.concat([this.actionColumn]);
+            this.defColumns = res.result.columns
             this.defColumns.forEach(column => {
               handleColumnHrefAndDict(component, column, collect)
               if (column.scopedSlots === null) {        //组件bug，null会报错
@@ -188,45 +187,6 @@
             this.$message.warning(res.message)
           }
         })
-      },
-      onClearSelected() {
-        this.selectedRowKeys = []
-        this.selectionRows = []
-      },
-      onSelectChange(selectedRowKeys, selectionRows) {
-        this.rightcolval = 1
-        this.selectedRowKeys = selectedRowKeys
-        this.selectionRows = selectionRows
-        this.model = Object.assign({}, selectionRows[0])
-        console.log(this.model)
-        this.currentRoleId = selectedRowKeys[0]
-      },
-      selectOK(data) {
-        let params = {}
-        params.roleId = this.currentRoleId
-        params.userIdList = []
-        for (var a = 0; a < data.length; a++) {
-          params.userIdList.push(data[a])
-        }
-        console.log(params)
-        postAction(this.url.addUserRole, params).then((res) => {
-          if (res.success) {
-            this.loadData()
-            this.$message.success(res.message)
-          } else {
-            this.$message.warning(res.message)
-          }
-        })
-      },
-
-      handleOpen(record) {
-        this.rightcolval = 1
-        this.selectedRowKeys = [record.id]
-        this.model = Object.assign({}, record)
-        this.currentRoleId = record.id
-      },
-      handlePerssion(roleId){
-        this.$refs.modalUserRole.show(roleId);
       },
       filterVisibleChange(visible) {
         if(visible || !this.$refs.filter) {
@@ -270,21 +230,18 @@
         }
       },
       handleFieldChanged: function(settingColumns) {
-        this.settingColumns = settingColumns;
-        //this.loadData();   //有点问题
-      },
-      settingColumnsHandler: function(e) {
-          var t = this
-            , n = vue__WEBPACK_IMPORTED_MODULE_11___default.a.ls.get(this.localCode);
-          n && 0 != n.length ? this.settingColumns = n.split(",") : (this.settingColumns = [],
-          e.forEach((function(e) {
-              t.settingColumns.indexOf(e["dataIndex"]) < 0 && t.settingColumns.push(e["dataIndex"])
-          }
-          )))
-      },
+        var columns = settingColumns;
+        this.defColumns.sort(function(a, b) {
+          return columns.indexOf(a.dataIndex) - columns.indexOf(b.dataIndex);
+        })
+        this.superQueryFieldList.sort(function(a, b) {
+          return columns.indexOf(a.value) - columns.indexOf(b.value);
+        });
+        //this.defColumns = this.defColumns.concat([])
 
+        this.$data.defColumns = this.defColumns;
+      },
       handleSortQuery() {
-
       }
     }
   }

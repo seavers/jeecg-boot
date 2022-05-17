@@ -1,10 +1,10 @@
 <template>
   <div class="dynamic-field-list">
     <a-list :data-source="columns">
-      <a-list-item slot="renderItem" slot-scope="item, index" >
+      <a-list-item slot="renderItem" slot-scope="item, index" :dataIndex="item.dataIndex">
         <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
         <span class="title">{{ item.title }}</span>
-        <a-switch size="small" :checked="settingColumns.indexOf(item.dataIndex)>-1" @change="onChangeFieldShow" :v-data-index="item.dataIndex"/>
+        <a-switch size="small" default-checked @change="onChangeFieldShow(item, $event)" />
       </a-list-item>
       <p><a-button icon="plus">新增字段</a-button></p>
     </a-list>
@@ -26,27 +26,27 @@
     },
     props: {
       columns: [],
-      settingColumns: []
     },
     methods: {
-      onChangeFieldShow(checked, ev) {
-        console.log(`a-switch to ${checked} ${ev.target}`)
-        var index = ev.target.getAttribute('v-data-index')
-        if (checked) {
-          this.settingColumns.indexOf(index) == -1 && this.settingColumns.push(index);
-        } else {
-          this.settingColumns.indexOf(index) > -1 && this.settingColumns.splice(this.settingColumns.indexOf(index), 1);
-        }
-
-        this.$emit("change", this.settingColumns)
+      onChangeFieldShow(item, checked) {
+        //console.log(`a-switch to ${checked} ${ev.target}`)
+        
+        //event.target.__vue__.checked = checked;
+        item.listShow = checked;
+        this.moveSortCallback()
       },
 
 
-      moveSortCall(dragIndex, targetIndex) {
-        var drag = this.settingColumns[dragIndex];
-        this.settingColumns.splice(dragIndex, 1)
-        this.settingColumns.splice(targetIndex, 0, drag);
-        console.log(this.settingColumns)
+      moveSortCallback() {
+        var parentNode = this.$el.querySelector('.ant-list-items');
+
+        var settingColumns = [];
+        parentNode.childNodes.forEach(function(el) {
+          settingColumns.push(el.getAttribute("dataIndex"))
+        })
+
+        this.$emit("change", settingColumns)
+        console.log(settingColumns)
       }
     }
   }
