@@ -180,18 +180,10 @@
             this.$message.warning(res.message)
           }
         })
-        getAction('/online/cgform/api/getQueryInfo/' + dynamicId, {}).then((res) => {
-          if (res.success) {
-            this.superQueryFieldList = res.result.map(el => {
-              return schemaTransform(el)
-            });
-          }else{
-            this.$message.warning(res.message)
-          }
-        })
         getAction('/online/cgform/api/getFormItem/' + dynamicId, {}).then((res) => {
           if (res.success) {
-            handleGetSchema(this, res.result.schema)
+            this.formColumns = handleGetSchema(this, res.result.schema)
+            this.superQueryFieldList = handleGetSchema(this, res.result.schema)
           }else{
             this.$message.warning(res.message)
           }

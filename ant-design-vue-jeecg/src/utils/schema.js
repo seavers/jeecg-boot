@@ -2,7 +2,7 @@ import { filterMultiDictText } from '@/components/dict/JDictSelectUtil'
 
 
 export function handleGetSchema(t, e) {
-  e && e.properties && function() {
+  return e && e.properties && function() {
       var n = function(e, t) {
           var n = t.view || t.type || "string";
           n = "inputNumber" === n ? "number" : n;
@@ -76,7 +76,7 @@ export function handleGetSchema(t, e) {
               s.order > l.order && (a[o] = l,
               a[c] = s)
           }
-      t.formColumns = a
+      return a;
   }()
 }
 
@@ -128,28 +128,6 @@ export function _createForOfIteratorHelper(e, t) {
           }
       }
   }
-}
-
-export function schemaTransform(t) {
-  var n = t.view || t.type || "string";
-  n = "inputNumber" === n ? "number" : n;
-  var a = {
-      type: n,
-      value: t.key || t.dbField,
-      text: t.title || t.label,
-      dictCode: t.dictCode,
-      dictTable: t.dictTable,
-      dictText: t.dictText,
-      options: t.enum || t.options,
-      order: t.order
-  };
-  "popup" === n && (a["popup"] = {
-      code: t.popupCode || t.code,
-      field: t.orgFields.split(",")[0],
-      orgFields: t.orgFields.split(",")[0],
-      destFields: t.destFields.split(",")[0]
-  })
-  return a;
 }
 
 
