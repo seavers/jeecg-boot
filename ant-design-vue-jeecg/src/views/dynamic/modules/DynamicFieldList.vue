@@ -1,6 +1,6 @@
 <template>
   <div class="dynamic-field-list">
-    <a-list :data-source="settingColumnsCopy">
+    <a-list :data-source="settingColumns">
       <a-list-item slot="renderItem" slot-scope="item, index" :dataIndex="item.dataIndex">
         <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
         <span class="title">{{ title(item) }}</span>
@@ -62,6 +62,14 @@
           return dataIndexes.indexOf(a.dataIndex) - dataIndexes.indexOf(b.dataIndex);
         })
 
+        console.log("field-list", dataIndexes)
+        this.$emit("change", dataIndexes);
+      },
+      moveSortIndex(dragIndex, targetIndex) {
+        var drag = this.settingColumns.splice(dragIndex, 1)[0];
+        this.settingColumns.splice(targetIndex, 0, drag);
+
+        var dataIndexes = this.settingColumns.map(el=>el.dataIndex);
         console.log("field-list", dataIndexes)
         this.$emit("change", dataIndexes);
       }

@@ -7,7 +7,7 @@ export const MoveSortMixin = {
   methods:{
    mouseDown(e) {
      //e.preventDefault();
-     console.log("drag-start", e, e.target);
+     console.debug("drag-start", e, e.target);
      this.dragging = this.bubble(e.target);
      this.dragList = this.dragging.parentNode;
 
@@ -15,6 +15,7 @@ export const MoveSortMixin = {
      this.dragList.classList.add("dynamic-field-list-sorting")
      this.dragList.childNodes.forEach(function(el, index) {
        el.style = "position:relative;top: 0px";
+       el.dragTop = el.offsetTop;
        el.index = index;
      })
      
@@ -33,11 +34,10 @@ export const MoveSortMixin = {
      }
      //console.log("mouse-move", e, this.dragging.index);
      var clientHeight = this.dragging.clientHeight;
+     var maxIndex = this.dragList.clientHeight/clientHeight;
 
      var offsetY = this.offsetEvent(e, this.dragList);
-     var targetIndex = Math.round(offsetY / clientHeight);
-     this.dragIndex = targetIndex;
-     this.changePosition(targetIndex, offsetY, e);
+     this.changePosition(offsetY, e);
 
      //需要阻止冒泡，这样有drop事件，表示拖拽成功
      e.preventDefault();
@@ -57,7 +57,7 @@ export const MoveSortMixin = {
        return ;
      }
 
-     console.log("drag-end", e, this.dragging, this.dragIndex);
+     console.debug("drag-end", e, this.dragging, this.dragTargetIndex);
      this.dragging.style.cssText = "opacity:0;z-index:0";
      this.dragging.classList.remove("dragging")
      this.dragList.classList.remove("dynamic-field-list-sorting")
@@ -65,46 +65,89 @@ export const MoveSortMixin = {
        el.style.cssText = 'position:relative;top:0px';
      })
 
-     var dragTarget = this.dragging.parentNode.childNodes[this.dragIndex];
+     var dragTarget = this.dragging.parentNode.childNodes[this.dragTargetIndex];
      if (this.dragging === dragTarget) {
        this.dragging = null;
        return ;
      }
+
      
-     if (this.dragging.index < dragTarget.index) {
-       this.dragging.parentNode.insertBefore(this.dragging, dragTarget.nextSibling)
-     } else {
-       this.dragging.parentNode.insertBefore(this.dragging, dragTarget)
+     //计算dragTargetIndex
+     var dragging = this.dragging;
+     var clientHeight = dragging.clientHeight;
+     var offsetY = this.offsetEvent(e, this.dragList);
+
+     var draggingIndex = -1;
+     var targetIndex = -1;
+     var children = this.dragging.parentNode.childNodes;
+     for(var i = 0; i < children.length; i++) {
+       var el = children[i];
+       if(el.dragTop < dragging.dragTop) {
+        var base = el.dragTop + clientHeight/2;
+        if (offsetY < base) {
+          targetIndex = i;
+          break;
+        }
+      } else if(el.dragTop > dragging.dragTop) {
+       var base = el.dragTop - clientHeight/2;
+       if (offsetY > base) {
+         targetIndex = i;
+       }
+      }
      }
 
-     this.moveSortCallback(this.dragging)
+     for(var i = 0; i < children.length; i++) {
+      var el = children[i];
+      if(el == dragging) {
+        draggingIndex = i;
+      }
+    }
+
+    if (draggingIndex != -1 && targetIndex != -1) {
+      this.moveSortIndex(draggingIndex, targetIndex)
+    } else {
+      console.error("drag index error", draggingIndex, targetIndex);
+    }
 
      this.dragging = null;
    },
 
 
-   changePosition(targetIndex, offsetY, e) {
+   changePosition(offsetY, e) {
      //var targetIndex = target.index;
      var dragging = this.dragging;
      var clientHeight = this.dragging.clientHeight;
+     var maxOffset = dragging.parentNode.clientHeight;
 
      //调整顺序
      dragging.parentNode.childNodes.forEach(function(el, index) {
        if(el == dragging) {
-         el.style = "position:relative;top: " + (offsetY-(dragging.index*clientHeight)-clientHeight/2) + "px";
+         if (offsetY < clientHeight/2) {
+          offsetY = clientHeight/2;
+         } else if(offsetY > maxOffset - clientHeight/2) {
+          offsetY = maxOffset - clientHeight/2;
+         }
+         var top = (offsetY-el.dragTop-clientHeight/2);
+         el.style = "position:relative;top: " + top + "px";
          return;
        }
 
-       if(dragging.index == targetIndex) {
-         el.style = "position:relative;top: 0px";
-       } else if(index < targetIndex && index < dragging.index) {
-         el.style = "position:relative;top: 0px";
-       } else if(index > targetIndex && index > dragging.index) {
-         el.style = "position:relative;top: 0px";
-       } else if(dragging.index < targetIndex) {
-         el.style = "position:relative;top: -" + (clientHeight) + "px";
+       if(el.dragTop < dragging.dragTop) {
+         var base = el.dragTop + clientHeight/2;
+         if (offsetY < base) {
+           el.style = "position:relative;top: " + (clientHeight) + "px";
+          } else {
+           el.style = "position:relative;top: 0px";
+         }
+       } else if(el.dragTop > dragging.dragTop) {
+        var base = el.dragTop - clientHeight/2;
+        if (offsetY > base) {
+          el.style = "position:relative;top: " + (-clientHeight) + "px";
+         } else {
+          el.style = "position:relative;top: 0px";
+        }
        } else {
-         el.style = "position:relative;top: " + (clientHeight) + "px";
+         el.style = "position:relative;top: 0px";
        }
      });
    },
