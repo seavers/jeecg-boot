@@ -133,7 +133,7 @@
   import JAreaLinkage from '@comp/jeecg/JAreaLinkage'
 
   export default {
-    name: 'JFilterQuery',
+    name: 'DynamicFilterQuery',
     mixins: [mixinDevice],
     components: { JAreaLinkage, JMultiSelectTag, JDate, JSelectDepart, JSelectMultiUser },
     props: {

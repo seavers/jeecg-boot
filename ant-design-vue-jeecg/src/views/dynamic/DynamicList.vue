@@ -12,7 +12,7 @@
 
           <a-popover title="筛选" placement="bottomLeft" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay-filter">
             <template #content>
-              <j-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
+              <dynamic-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>
             <a-button type="primary" icon="filter">筛选</a-button>
           </a-popover>
@@ -70,12 +70,12 @@
 </template>
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
-  import JFilterQuery from '@/components/jeecg/JFilterQuery.vue';
   import { deleteAction, postAction, getAction } from '@/api/manage'
   import { filterObj, removeEmptyObject } from '@/utils/util'
   import { handleGetSchema, schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
   import DynamicModal from '../dynamic/DynamicModal'
   import DynamicFieldList from './modules/DynamicFieldList'
+  import DynamicFilterQuery from './modules/DynamicFilterQuery';
   import DynamicSortQuery from './modules/DynamicSortQuery'
   import moment from 'moment'
 
@@ -83,7 +83,7 @@
     name: 'DynamicList',
     mixins: [JeecgListMixin],
     components: {
-      JFilterQuery,
+      DynamicFilterQuery,
       DynamicModal,
       DynamicFieldList,
       DynamicSortQuery,
