@@ -12,21 +12,21 @@
 
           <a-popover title="字段配置" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-field">
             <template #content>
-              <dynamic-field-list :columns="columns" :settingColumns="settingColumns" @change="handleFieldChanged"></dynamic-field-list>
+              <dynamic-field-list ref="field" :columns="columns" :settingColumns="tableConfig.settingColumns" @change="handleFieldChanged"></dynamic-field-list>
             </template>
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
           <a-popover title="筛选" placement="bottomLeft" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-filter">
             <template #content>
-              <dynamic-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
+              <dynamic-filter-query ref="filter" :fieldList="superQueryFieldList" :queryParamsModel="tableConfig.queryParamsModel" @handleSuperQuery="handleSuperQuery"/>
             </template>
             <a-button type="primary" icon="filter">筛选</a-button>
           </a-popover>
 
           <a-popover title="排序" placement="bottom" trigger="click" @visibleChange="sortVisibleChange" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-sort">
             <template #content>
-              <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortColumns="sortColumns" @handleSortQuery="handleSortQuery"/>
+              <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortParamsModel="tableConfig.sortParamsModel" @handleSortQuery="handleSortQuery"/>
             </template>
             <a-button type="primary" icon="sort">排序</a-button>
           </a-popover>
@@ -104,21 +104,13 @@
         model: {},
         currentRoleId: '',
         queryParam: {},
+        tableConfig: {},      //当前视图的设置
         dataSource: [],
-        ipagination: {
-          current: 1,
-          pageSize: 10,
-          pageSizeOptions: ['10', '20', '30'],
-          showTotal: (total, range) => {
-            return range[0] + '-' + range[1] + ' 共' + total + '条'
-          },
-          showQuickJumper: true,
-          showSizeChanger: true,
-          total: 0
-        },
-        defColumns: [],
+
+        columns: [],
+        superQueryFieldList: [],
+        tableColumns: [],
         formColumns: [],
-        settingColumns: [],
         sortColumns: [],
         actionColumn: {
             title: "操作",
@@ -133,14 +125,22 @@
           column: 'createTime',
           order: 'desc'
         },
-        filters: {},
+        ipagination: {
+          current: 1,
+          pageSize: 10,
+          pageSizeOptions: ['10', '20', '30'],
+          showTotal: (total, range) => {
+            return range[0] + '-' + range[1] + ' 共' + total + '条'
+          },
+          showQuickJumper: true,
+          showSizeChanger: true,
+          total: 0
+        },
+        
         loading: false,
         test:{},
         rightcolval:0,
-        columns: [],
-        superQueryFieldList: [
-        ],
-
+        
         url: {
           list: '/online/cgform/api/getData/' + this.$route.params.code,
           delete: '/online/cgform/api/form/' + this.$route.params.code + "/:id",
@@ -156,9 +156,9 @@
       tableColumn: function() {
           var e = this;
           if (!this.settingColumns || this.settingColumns.length <= 0) {
-              return this.defColumns.concat([this.actionColumn]);
+              return this.tableColumns.concat([this.actionColumn]);
           }
-          var t = this.defColumns.filter(function(t) {
+          var t = this.tableColumns.filter(function(t) {
               return "rowIndex" == t.key || "action" == t.dataIndex || (t.listShow || t.listShow === undefined)
           });
           return t.concat([this.actionColumn])
@@ -175,14 +175,14 @@
             this.dictOptions = res.result.dictOptions;
 
             this.settingColumns = [];
-            this.defColumns = res.result.columns
-            this.defColumns.forEach(column => {
+            this.tableColumns = res.result.columns
+            this.tableColumns.forEach(column => {
               handleColumnHrefAndDict(component, column, collect)
               if (column.scopedSlots === null) {        //组件bug，null会报错
                 column.scopedSlots = undefined
               }
-              this.settingColumns.push(column.dataIndex)
             });
+            this.loadDynamicConfig();
             this.loadData(1);
           }else{
             this.$message.warning(res.message)
@@ -197,20 +197,38 @@
           }
         })
       },
+      loadDynamicConfig() {
+        this.tableConfig = this.$ls.get('dynamic-config' + this.url.list)
+        if(this.tableConfig == undefined) {
+          this.tableConfig = {
+            settingColumns: this.initSettingColumns(),
+            queryParamsModel: [],
+            sortParamsModel: []
+          }
+        }
+      },
+      initSettingColumns() {
+        return this.columns.map((column) => {
+          return {
+            dataIndex: column.dataIndex,
+            listShow: true
+          }
+        });
+      },
       filterVisibleChange(visible) {
-        if(visible || !this.$refs.filter) {
+        if(visible) {
           return;
         }
-        var param = this.$refs.filter.queryParamsModel;
+        var param = this.tableConfig.queryParamsModel;
         param = removeEmptyObject(param)
         console.log(param)
         this.handleSuperQuery(param, 'and');
       },
       sortVisibleChange(visible) {
-        if(visible || !this.$refs.sort) {
+        if(visible) {
           return;
         }
-        var param = this.$refs.sort.sortParamsModel;
+        var param = this.tableConfig.sortParamsModel;
         param = removeEmptyObject(param)
         this.sortParamsModel = param
         console.log(param)
@@ -240,15 +258,15 @@
       },
       handleFieldChanged: function(settingColumns) {
         var columns = settingColumns;
-        this.defColumns.sort(function(a, b) {
+        this.tableColumns.sort(function(a, b) {
           return columns.indexOf(a.dataIndex) - columns.indexOf(b.dataIndex);
         })
         this.superQueryFieldList.sort(function(a, b) {
           return columns.indexOf(a.value) - columns.indexOf(b.value);
         });
-        //this.defColumns = this.defColumns.concat([])
+        //this.tableColumns = this.tableColumns.concat([])
 
-        this.$data.defColumns = this.defColumns;
+        this.$data.tableColumns = this.tableColumns;
       },
       handleSortQuery() {
       }

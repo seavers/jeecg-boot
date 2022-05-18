@@ -137,6 +137,10 @@
     mixins: [mixinDevice],
     components: { JAreaLinkage, JMultiSelectTag, JDate, JSelectDepart, JSelectMultiUser },
     props: {
+      queryParamsModel: {
+        type: Array,
+        default: ()=>[]
+      },
       /*
        fieldList: [{
           value:'',
@@ -184,7 +188,6 @@
         },
 
         visible: false,
-        queryParamsModel: [],
         treeIcon: <a-icon type="file-text"/>,
         // 保存查询条件的treeData
         saveTreeData: [],

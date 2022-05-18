@@ -59,9 +59,6 @@
         type: Array,
         default: ()=>[]
       },
-      sortColumns: {
-        type: Array
-      },
       /*
        fieldList: [{
           value:'',

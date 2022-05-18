@@ -1,9 +1,9 @@
 <template>
   <div class="dynamic-field-list">
-    <a-list :data-source="columns">
+    <a-list :data-source="settingColumnsCopy">
       <a-list-item slot="renderItem" slot-scope="item, index" :dataIndex="item.dataIndex">
         <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
-        <span class="title">{{ item.title }}</span>
+        <span class="title">{{ title(item) }}</span>
         <a-switch size="small" default-checked @change="onChangeFieldShow(item, $event)" />
       </a-list-item>
       <p><a-button icon="plus">新增字段</a-button></p>
@@ -18,35 +18,52 @@
   export default {
     name: "DynamicFieldList",
     mixins: [MoveSortMixin],
-    data () {
-      return {
-        dragging: null,
-        nodes: [],
+    props: {
+      columns: {
+        type: Array,
+        default: []
+      },
+      settingColumns: {
+        type: Array,
+        default: []
       }
     },
-    props: {
-      columns: [],
+    data () {
+      return {
+        settingColumnsCopy: []
+      }
+    },
+    created() {
+      this.settingColumnsCopy = [].concat(this.settingColumns)
     },
     methods: {
+      title(item) {
+        var columns = this.columns;
+        for(var i = 0; i < columns.length; i++) {
+          if(columns[i].dataIndex == item.dataIndex) {
+            return columns[i].title;
+          }
+        }
+        return '';
+      },
       onChangeFieldShow(item, checked) {
         //console.log(`a-switch to ${checked} ${ev.target}`)
-        
-        //event.target.__vue__.checked = checked;
         item.listShow = checked;
         this.moveSortCallback()
       },
-
-
       moveSortCallback() {
         var parentNode = this.$el.querySelector('.ant-list-items');
 
-        var settingColumns = [];
+        var dataIndexes = [];
         parentNode.childNodes.forEach(function(el) {
-          settingColumns.push(el.getAttribute("dataIndex"))
+          dataIndexes.push(el.getAttribute("dataIndex"))
+        })
+        this.settingColumns.sort(function(a, b) {
+          return dataIndexes.indexOf(a.dataIndex) - dataIndexes.indexOf(b.dataIndex);
         })
 
-        this.$emit("change", settingColumns)
-        console.log(settingColumns)
+        console.log("field-list", dataIndexes)
+        this.$emit("change", dataIndexes);
       }
     }
   }
