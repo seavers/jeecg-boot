@@ -3,21 +3,28 @@
       <a-card :bordered="false">
           <!-- 功能区域 -->
         <div class="table-page-toolbar">
-          <a-popover title="字段配置" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay-field">
+          <a-popover title="" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-view">
+            <template #content>
+              <dynamic-view-list @change="handleFieldChanged"></dynamic-view-list>
+            </template>
+            <a-button type="default" icon="double-right">当前视图</a-button>
+          </a-popover>
+
+          <a-popover title="字段配置" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-field">
             <template #content>
               <dynamic-field-list :columns="columns" :settingColumns="settingColumns" @change="handleFieldChanged"></dynamic-field-list>
             </template>
             <a-button type="primary" icon="setting">字段配置</a-button>
           </a-popover>
 
-          <a-popover title="筛选" placement="bottomLeft" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay-filter">
+          <a-popover title="筛选" placement="bottomLeft" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-filter">
             <template #content>
               <dynamic-filter-query ref="filter" :fieldList="superQueryFieldList" @handleSuperQuery="handleSuperQuery"/>
             </template>
             <a-button type="primary" icon="filter">筛选</a-button>
           </a-popover>
 
-          <a-popover title="排序" placement="bottom" trigger="click" @visibleChange="sortVisibleChange" overlayClassName="dynamic-popover-overlay-sort">
+          <a-popover title="排序" placement="bottom" trigger="click" @visibleChange="sortVisibleChange" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-sort">
             <template #content>
               <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortColumns="sortColumns" @handleSortQuery="handleSortQuery"/>
             </template>
@@ -74,6 +81,7 @@
   import { filterObj, removeEmptyObject } from '@/utils/util'
   import { handleGetSchema, schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
   import DynamicModal from '../dynamic/DynamicModal'
+  import DynamicViewList from './modules/DynamicViewList'
   import DynamicFieldList from './modules/DynamicFieldList'
   import DynamicFilterQuery from './modules/DynamicFilterQuery';
   import DynamicSortQuery from './modules/DynamicSortQuery'
@@ -87,6 +95,7 @@
       DynamicModal,
       DynamicFieldList,
       DynamicSortQuery,
+      DynamicViewList,
       moment
     },
     data() {
@@ -248,6 +257,9 @@
 </script>
 
 <style>
+  .dynamic-popover-overlay-view .ant-popover-inner-content {
+    padding: 0;
+  }
   .dynamic-popover-overlay-field .ant-popover-inner-content {
     padding: 0 3px;
   }
