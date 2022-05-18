@@ -6,28 +6,29 @@ export const MoveSortMixin = {
   },
   methods:{
     mouseDown(e) {
+      var that = this;
+      if(e.button != 0) {
+        return ;
+      }
+
       //e.preventDefault();
       console.debug("drag-start", e);
       this.dragging = this.bubble(e.target);
       this.dragList = this.dragging.parentNode;
       
       this.dragging.classList.add("dragging")
-      this.dragList.classList.add("dynamic-field-list-sorting")
+      this.dragList.classList.add("dragging-sorting")
       this.dragList.childNodes.forEach(function(el, index) {
-        el.style = "position:relative;top: 0px";
+        that.setCssStyleTop(el, 0)
         el.dragTop = el.offsetTop;
         el.index = index;
       })
-      
-      var dragging = this.dragging;
-      setTimeout(function() {
-        //dragging.style.cssText = "opacity:0;z-index:1";
-      }, 10);
       
       document.addEventListener('mousemove', this.mouseMove);
       document.addEventListener('mouseup', this.mouseUp);
     },
     mouseMove(e) {
+      var that = this;
       if (this.dragging == null) {
         document.removeEventListener('mousemove', this.mouseMove);
         return ;
@@ -36,8 +37,8 @@ export const MoveSortMixin = {
       var offsetY = this.offsetEvent(e, this.dragList);
       //var targetIndex = target.index;
       var dragging = this.dragging;
-      var clientHeight = this.dragging.clientHeight;
-      var maxOffset = dragging.parentNode.clientHeight;
+      var clientHeight = this.dragging.clientHeight + this.getCssStyleMarginBottom(this.dragging);
+      var maxOffset = dragging.parentNode.clientHeight + this.getCssStyleMarginBottom(this.dragging);
       
       //调整顺序
       dragging.parentNode.childNodes.forEach(function(el, index) {
@@ -48,26 +49,26 @@ export const MoveSortMixin = {
             offsetY = maxOffset - clientHeight/2;
           }
           var top = (offsetY-el.dragTop-clientHeight/2);
-          el.style = "position:relative;top: " + top + "px";
+          that.setCssStyleTop(el, top)
           return;
         }
         
         if(el.dragTop < dragging.dragTop) {
           var base = el.dragTop + clientHeight;
           if (offsetY < base) {
-            el.style = "position:relative;top: " + (clientHeight) + "px";
+            that.setCssStyleTop(el, clientHeight)
           } else {
-            el.style = "position:relative;top: 0px";
+            that.setCssStyleTop(el, 0)
           }
         } else if(el.dragTop > dragging.dragTop) {
           var base = el.dragTop;
           if (offsetY > base) {
-            el.style = "position:relative;top: " + (-clientHeight) + "px";
+            that.setCssStyleTop(el, -clientHeight)
           } else {
-            el.style = "position:relative;top: 0px";
+            that.setCssStyleTop(el, 0)
           }
         } else {
-          el.style = "position:relative;top: 0px";
+          that.setCssStyleTop(el, 0)
         }
       });
       
@@ -83,17 +84,18 @@ export const MoveSortMixin = {
       //console.log("drag-leave", this.dragging.index, e.currentTarget.index );
     },
     mouseUp(e) {
+      var that = this;
       document.removeEventListener('mousemove', this.mouseMove);
       document.removeEventListener('mouseup', this.mouseUp);
       if(this.dragging == null) {
         return ;
       }
       
-      this.dragging.style.cssText = "opacity:0;z-index:0";
+      //this.dragging.style.cssText = "opacity:0;z-index:0";
       this.dragging.classList.remove("dragging")
-      this.dragList.classList.remove("dynamic-field-list-sorting")
+      this.dragList.classList.remove("dragging-sorting")
       this.dragList.childNodes.forEach(function(el, index) {
-        el.style.cssText = 'position:relative;top:0px';
+        that.setCssStyleTop(el, 0)
       })
       
       //计算dragTargetIndex
@@ -142,6 +144,24 @@ export const MoveSortMixin = {
       }
       
       this.dragging = null;
+    },
+
+    arraySwap(array, fromIndex, toIndex) {
+      var drag = array.splice(fromIndex, 1)[0];
+      array.splice(toIndex, 0, drag);
+    },
+
+    setCssStyleTop(el, top) {
+      el.style.setProperty('position', 'relative');
+      el.style.setProperty('top', top + 'px');
+      console.log("css.top", top, el)
+    },
+    getCssStyleMarginBottom(el) {
+      var marginBottom = el.style.getPropertyValue('margin-bottom');
+      if(marginBottom != null && marginBottom.indexOf('px') > -1) {
+        return Number(marginBottom.slice(0, -2))
+      }
+      return 0;
     },
     
     bubble(el) {

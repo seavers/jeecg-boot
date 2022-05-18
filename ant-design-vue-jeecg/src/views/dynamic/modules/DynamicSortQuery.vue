@@ -5,7 +5,7 @@
           <a-form layout="inline">
 
             <a-row type="flex" drag-target="true" style="margin-bottom:12px" :gutter="16" v-for="(item, index) in sortParamsModel" :key="index">
-              <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
+              <a-icon class="dragbar" type="menu" @mousedown.left="mouseDown" />
 
               <a-col class="sort-field">
                 <a-tree-select
@@ -426,15 +426,8 @@
         item.val = values[item.popup['destFields']]
       },
 
-      moveSortCall(dragIndex, targetIndex) {
-        var drag = this.sortParamsModel[dragIndex];
-        if(dragIndex < targetIndex) {
-          this.sortParamsModel.splice(targetIndex, 0, drag);
-          this.sortParamsModel.splice(dragIndex, 1)
-        } else if(dragIndex > targetIndex) {
-          this.sortParamsModel.splice(dragIndex, 1)
-          this.sortParamsModel.splice(targetIndex, 0, drag);
-        }
+      moveSortIndex(dragIndex, targetIndex) {
+        this.arraySwap(this.sortParamsModel, dragIndex, targetIndex);
         console.log(this.sortParamsModel)
       }
     }
@@ -455,6 +448,16 @@
       width: 450px;
     }
   }
+
+  .j-sort-query-box .dragging-sorting .ant-row-flex {
+    transition: top 0.36s;
+  }
+  .j-sort-query-box .dragging-sorting .ant-row-flex.dragging {
+    transition: none;
+    z-index: 1;
+  }
+
+
 
   .j-sort-query-box .ant-row-flex {
     align-items: center;

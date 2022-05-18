@@ -2,7 +2,7 @@
   <div class="dynamic-field-list">
     <a-list :data-source="settingColumns">
       <a-list-item slot="renderItem" slot-scope="item, index" :dataIndex="item.dataIndex">
-        <a-icon class="dragbar" type="menu" @mousedown="mouseDown" />
+        <a-icon class="dragbar" type="menu" @mousedown.left="mouseDown" />
         <span class="title">{{ title(item) }}</span>
         <a-switch size="small" default-checked @change="onChangeFieldShow(item, $event)" />
       </a-list-item>
@@ -66,8 +66,7 @@
         this.$emit("change", dataIndexes);
       },
       moveSortIndex(dragIndex, targetIndex) {
-        var drag = this.settingColumns.splice(dragIndex, 1)[0];
-        this.settingColumns.splice(targetIndex, 0, drag);
+        this.arraySwap(this.settingColumns, dragIndex, targetIndex);
 
         var dataIndexes = this.settingColumns.map(el=>el.dataIndex);
         console.log("field-list", dataIndexes)
@@ -87,11 +86,12 @@
     justify-content: space-between;
     padding: 4px 4px;
   }
-  .dynamic-field-list .dynamic-field-list-sorting .ant-list-item {
+  .dynamic-field-list .dragging-sorting .ant-list-item {
     transition: top 0.36s;
   }
-  .dynamic-field-list .dynamic-field-list-sorting .ant-list-item.dragging {
+  .dynamic-field-list .draggingt-sorting .ant-list-item.dragging {
     transition: none;
+    z-index: 1;
   }
   .dynamic-field-list .ant-list-item:hover {
     background: #eee;
