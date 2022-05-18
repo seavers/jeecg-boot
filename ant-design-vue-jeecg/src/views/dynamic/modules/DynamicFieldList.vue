@@ -4,7 +4,7 @@
       <a-list-item slot="renderItem" slot-scope="item, index" :dataIndex="item.dataIndex">
         <a-icon class="dragbar" type="menu" @mousedown.left="mouseDown" />
         <span class="title">{{ title(item) }}</span>
-        <a-switch size="small" default-checked @change="onChangeFieldShow(item, $event)" />
+        <a-switch size="small" :checked="item.listShow" @change="item.listShow=$event" />
       </a-list-item>
       <p><a-button icon="plus">新增字段</a-button></p>
     </a-list>
@@ -30,11 +30,7 @@
     },
     data () {
       return {
-        settingColumnsCopy: []
       }
-    },
-    created() {
-      this.settingColumnsCopy = [].concat(this.settingColumns)
     },
     methods: {
       title(item) {
@@ -45,14 +41,6 @@
           }
         }
         return '';
-      },
-      onChangeFieldShow(item, checked) {
-        //console.log(`a-switch to ${checked} ${ev.target}`)
-        item.listShow = checked;
-
-        //force refresh
-        //var dataIndexes = this.settingColumns.map(el=>el.dataIndex);
-        //this.$emit("change", dataIndexes);
       },
       moveSortCallback() {
         var parentNode = this.$el.querySelector('.ant-list-items');
