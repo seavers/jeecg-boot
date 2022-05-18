@@ -154,7 +154,6 @@ export const MoveSortMixin = {
     setCssStyleTop(el, top) {
       el.style.setProperty('position', 'relative');
       el.style.setProperty('top', top + 'px');
-      console.log("css.top", top, el)
     },
     getCssStyleMarginBottom(el) {
       var marginBottom = el.style.getPropertyValue('margin-bottom');

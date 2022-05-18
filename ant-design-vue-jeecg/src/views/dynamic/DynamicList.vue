@@ -38,8 +38,8 @@
 
         <div style="margin-top: 15px">
           <a-table
-            style="height:500px"
             ref="table"
+            style="height:500px"
             size="middle"
             bordered
             rowKey="id"
@@ -155,11 +155,13 @@
     computed: {
       tableColumn: function() {
           var e = this;
-          if (!this.settingColumns || this.settingColumns.length <= 0) {
+          if (!this.tableConfig.settingColumns || this.tableConfig.settingColumns.length <= 0) {
               return this.tableColumns.concat([this.actionColumn]);
           }
+
+          var settingColumns = this.tableConfig.settingColumns.filter(el=>el.listShow).map(el=>el.dataIndex);
           var t = this.tableColumns.filter(function(t) {
-              return "rowIndex" == t.key || "action" == t.dataIndex || (t.listShow || t.listShow === undefined)
+              return "rowIndex" == t.key || "action" == t.dataIndex || !!settingColumns.includes(t.dataIndex)
           });
           return t.concat([this.actionColumn])
       },
@@ -174,7 +176,6 @@
             this.columns = res.result.columns.concat([]);        //隔离后用于fieldList
             this.dictOptions = res.result.dictOptions;
 
-            this.settingColumns = [];
             this.tableColumns = res.result.columns
             this.tableColumns.forEach(column => {
               handleColumnHrefAndDict(component, column, collect)
@@ -264,9 +265,6 @@
         this.superQueryFieldList.sort(function(a, b) {
           return columns.indexOf(a.value) - columns.indexOf(b.value);
         });
-        //this.tableColumns = this.tableColumns.concat([])
-
-        this.$data.tableColumns = this.tableColumns;
       },
       handleSortQuery() {
       }

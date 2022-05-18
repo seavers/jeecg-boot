@@ -49,7 +49,10 @@
       onChangeFieldShow(item, checked) {
         //console.log(`a-switch to ${checked} ${ev.target}`)
         item.listShow = checked;
-        this.moveSortCallback()
+
+        //force refresh
+        //var dataIndexes = this.settingColumns.map(el=>el.dataIndex);
+        //this.$emit("change", dataIndexes);
       },
       moveSortCallback() {
         var parentNode = this.$el.querySelector('.ant-list-items');
@@ -76,7 +79,6 @@
   }
 </script>
 
-
 <style scoped>
   .dynamic-field-list .ant-list-item {
     width: 200px;
@@ -89,7 +91,7 @@
   .dynamic-field-list .dragging-sorting .ant-list-item {
     transition: top 0.36s;
   }
-  .dynamic-field-list .draggingt-sorting .ant-list-item.dragging {
+  .dynamic-field-list .dragging-sorting .ant-list-item.dragging {
     transition: none;
     z-index: 1;
   }
