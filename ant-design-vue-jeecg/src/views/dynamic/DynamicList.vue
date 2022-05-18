@@ -166,6 +166,14 @@
           return t.concat([this.actionColumn])
       },
     },
+    watch: {
+      tableConfig: {
+        deep: true,
+        handler: function(config) {
+          this.$ls.set('dynamic-config' + this.url.list, config)
+        }
+      }
+    },
     methods: {
       loadDynamicData() {
         var component = this;
