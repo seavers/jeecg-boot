@@ -6,7 +6,6 @@ export const MoveSortMixin = {
   },
   methods:{
     mouseDown(e) {
-      var that = this;
       if(e.button != 0) {
         return ;
       }
@@ -18,8 +17,8 @@ export const MoveSortMixin = {
       
       this.dragging.classList.add("dragging")
       this.dragList.classList.add("dragging-sorting")
-      this.dragList.childNodes.forEach(function(el, index) {
-        that.setCssStyleTop(el, 0)
+      this.dragList.childNodes.forEach((el, index) => {
+        this.setCssStyleTop(el, 0)
         el.dragTop = el.offsetTop;
         el.index = index;
       })
@@ -28,7 +27,6 @@ export const MoveSortMixin = {
       document.addEventListener('mouseup', this.mouseUp);
     },
     mouseMove(e) {
-      var that = this;
       if (this.dragging == null) {
         document.removeEventListener('mousemove', this.mouseMove);
         return ;
@@ -41,7 +39,7 @@ export const MoveSortMixin = {
       var maxOffset = dragging.parentNode.clientHeight + this.getCssStyleMarginBottom(this.dragging);
       
       //调整顺序
-      dragging.parentNode.childNodes.forEach(function(el, index) {
+      dragging.parentNode.childNodes.forEach((el, index) => {
         if(el == dragging) {
           if (offsetY < clientHeight/2) {
             offsetY = clientHeight/2;
@@ -49,26 +47,26 @@ export const MoveSortMixin = {
             offsetY = maxOffset - clientHeight/2;
           }
           var top = (offsetY-el.dragTop-clientHeight/2);
-          that.setCssStyleTop(el, top)
+          this.setCssStyleTop(el, top)
           return;
         }
         
         if(el.dragTop < dragging.dragTop) {
           var base = el.dragTop + clientHeight;
           if (offsetY < base) {
-            that.setCssStyleTop(el, clientHeight)
+            this.setCssStyleTop(el, clientHeight)
           } else {
-            that.setCssStyleTop(el, 0)
+            this.setCssStyleTop(el, 0)
           }
         } else if(el.dragTop > dragging.dragTop) {
           var base = el.dragTop;
           if (offsetY > base) {
-            that.setCssStyleTop(el, -clientHeight)
+            this.setCssStyleTop(el, -clientHeight)
           } else {
-            that.setCssStyleTop(el, 0)
+            this.setCssStyleTop(el, 0)
           }
         } else {
-          that.setCssStyleTop(el, 0)
+          this.setCssStyleTop(el, 0)
         }
       });
       
@@ -84,7 +82,6 @@ export const MoveSortMixin = {
       //console.log("drag-leave", this.dragging.index, e.currentTarget.index );
     },
     mouseUp(e) {
-      var that = this;
       document.removeEventListener('mousemove', this.mouseMove);
       document.removeEventListener('mouseup', this.mouseUp);
       if(this.dragging == null) {
@@ -94,8 +91,8 @@ export const MoveSortMixin = {
       //this.dragging.style.cssText = "opacity:0;z-index:0";
       this.dragging.classList.remove("dragging")
       this.dragList.classList.remove("dragging-sorting")
-      this.dragList.childNodes.forEach(function(el, index) {
-        that.setCssStyleTop(el, 0)
+      this.dragList.childNodes.forEach((el, index) => {
+        this.setCssStyleTop(el, 0)
       })
       
       //计算dragTargetIndex
