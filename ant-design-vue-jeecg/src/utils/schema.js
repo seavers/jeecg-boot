@@ -132,43 +132,46 @@ export function _createForOfIteratorHelper(e, t) {
 }
 
 
-export function handleColumnHrefAndDict(e,t,n) {
-  var a = e.$createElement
-    , r = t.customRender
-    , i = t.hrefSlotName
-    , o = t.fieldType;
-  if ("Date" == o)
-      t.customRender = function(e) {
-          return e ? e.length > 10 ? e.substring(0, 10) : e : ""
-      }
-      ;
-  else if (!i && t.scopedSlots && t.scopedSlots.customRender && n.hasOwnProperty(t.scopedSlots.customRender) && (i = t.scopedSlots.customRender),
-  r || i) {
-      var c = r
-        , s = "_replace_text_";
-      t.customRender = function(r, o) {
-          var l = r;
-          if (c)
-              if (c.startsWith(s)) {
-                  var u = c.replace(s, "");
-                  l = o[u]
-              } else
-                  l = filterMultiDictText(e.dictOptions[c], r);
-          if (t.showLength && l && l.length > t.showLength && (l = l.substr(0, t.showLength) + "..."),
-          i) {
-              var d = n[i];
-              if (d)
-                  return a("a", {
-                      on: {
-                          click: function() {
-                              return handleClickFieldHref(d, o)
-                          }
-                      }
-                  }, [l])
-          }
-          return l
-      }
-  }
+export function handleColumnHrefAndDict(vm,column,extension) {
+    var customRender = column.customRender
+    var hrefSlotName = column.hrefSlotName
+    if ("Date" == column.fieldType) {
+        column.customRender = function(e) {
+            return e ? e.length > 10 ? e.substring(0, 10) : e : ""
+        }
+    }
+    if (!hrefSlotName && column.scopedSlots && column.scopedSlots.customRender && extension.hasOwnProperty(column.scopedSlots.customRender)) {
+        hrefSlotName = column.scopedSlots.customRender
+    }
+    if(customRender || hrefSlotName) {
+        var custom = customRender
+        column.customRender = function(value, context) {
+            if (custom) {
+                if (custom.startsWith("_replace_text_")) {
+                    var u = custom.replace("_replace_text_", "");
+                    value = context[u]
+                } else {
+                    value = filterMultiDictText(vm.dictOptions[custom], value);
+                }
+            }
+            if (column.showLength && value && value.length > column.showLength) {
+                value = value.substr(0, column.showLength) + "..."
+            }
+            if(hrefSlotName) {
+                var href = extension[hrefSlotName];
+                if (href) {
+                    return vm.$createElement("a", {
+                        on: {
+                            click: function() {
+                                return handleClickFieldHref(href, context)
+                            }
+                        }
+                    }, [value])
+                }
+            }
+            return value
+        }
+    }
 }
 
 export function handleClickFieldHref(field, record) {
@@ -189,6 +192,29 @@ export function handleClickFieldHref(field, record) {
   }
   ))),
   urlPattern.test(href) ? window.open(href, "_blank") : compPattern.test(href) ? this.openHrefCompModal(href) : this.$router.push(href))
+}
+
+export function openHrefCompModal(e) {
+    var t = e.indexOf("?")
+      , n = e;
+    if (-1 !== t) {
+        n = e.substring(0, t);
+        var a = e.substring(t + 1, e.length)
+          , r = a.split("&")
+          , i = {};
+        r.forEach((function(e) {
+            var t = e.split("=");
+            i[t[0]] = t[1]
+        }
+        )),
+        this.hrefComponent.params = i
+    } else
+        this.hrefComponent.params = {};
+    this.hrefComponent.model.visible = !0,
+    this.hrefComponent.model.title = "操作",
+    this.hrefComponent.is = function() {
+        return __webpack_require__("9dac")("./" + (n.startsWith("/") ? n.slice(1) : n))
+    }
 }
 
 
