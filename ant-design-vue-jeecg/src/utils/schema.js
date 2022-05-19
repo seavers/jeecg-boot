@@ -10,6 +10,7 @@ export function handleGetSchema(t, e) {
               type: n,
               value: t.key,
               text: t.title,
+              label: t.title,
               dictCode: t.dictCode,
               dictTable: t.dictTable,
               dictText: t.dictText,
