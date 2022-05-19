@@ -23,7 +23,7 @@
             <template #content>
               <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortParamsModel="tableConfig.sortParamsModel" @handleSortQuery="handleSortQuery"/>
             </template>
-            <a-button type="primary" icon="sort">排序</a-button>
+            <a-button type="primary" icon="sort-ascending">排序</a-button>
           </a-popover>
           
           <span class="btn-right-group">
