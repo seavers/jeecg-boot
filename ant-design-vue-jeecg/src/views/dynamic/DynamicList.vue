@@ -3,12 +3,7 @@
       <a-card :bordered="false">
           <!-- 功能区域 -->
         <div class="table-page-toolbar">
-          <a-popover title="" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-view">
-            <template #content>
-              <dynamic-view-list @change="handleFieldChanged"></dynamic-view-list>
-            </template>
-            <a-button type="default" icon="double-right">当前视图</a-button>
-          </a-popover>
+          <dynamic-view-list :viewId.sync="viewId"></dynamic-view-list>
 
           <a-popover title="字段配置" placement="bottomLeft" trigger="click" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-field">
             <template #content>
@@ -98,8 +93,13 @@
       DynamicViewList,
       moment
     },
+    props: {
+    },
     data() {
       return {
+        dynamicId: this.$route.params.code,
+        viewId: -1,
+
         disableMixinCreated: true,
         model: {},
         currentRoleId: '',
@@ -149,9 +149,6 @@
         }
       }
     },
-    created() {
-      this.loadDynamicData();
-    },
     computed: {
       tableColumn: function() {
           var e = this;
@@ -170,15 +167,19 @@
       tableConfig: {
         deep: true,
         handler: function(config) {
-          this.$ls.set('dynamic-config' + this.url.list, config)
+          this.$ls.set('dynamic:config:' + this.dynamicId + ":" + this.viewId, config)
         }
-      }
+      },
+      viewId: function() {
+        this.loadDynamicConfig()
+      },
+    },
+    created() {
+      this.loadDynamicData();
     },
     methods: {
       loadDynamicData() {
-        var component = this;
-        var dynamicId = this.$route.params.code;
-        getAction('/online/cgform/api/getColumns/' + dynamicId, {}).then((res) => {
+        getAction('/online/cgform/api/getColumns/' + this.dynamicId, {}).then((res) => {
           if (res.success) {
             var collect = {};
             this.columns = res.result.columns.concat([]);        //隔离后用于fieldList
@@ -186,18 +187,17 @@
 
             this.tableColumns = res.result.columns
             this.tableColumns.forEach(column => {
-              handleColumnHrefAndDict(component, column, collect)
+              handleColumnHrefAndDict(this, column, collect)
               if (column.scopedSlots === null) {        //组件bug，null会报错
                 column.scopedSlots = undefined
               }
             });
             this.loadDynamicConfig();
-            this.loadData(1);
           }else{
             this.$message.warning(res.message)
           }
         })
-        getAction('/online/cgform/api/getFormItem/' + dynamicId, {}).then((res) => {
+        getAction('/online/cgform/api/getFormItem/' + this.dynamicId, {}).then((res) => {
           if (res.success) {
             this.formColumns = handleGetSchema(this, res.result.schema)
             this.superQueryFieldList = handleGetSchema(this, res.result.schema)
@@ -207,47 +207,64 @@
         })
       },
       loadDynamicConfig() {
-        this.tableConfig = this.$ls.get('dynamic-config' + this.url.list)
-        if(this.tableConfig == undefined) {
+        var tableConfig = this.$ls.get('dynamic:config:' + this.dynamicId + ":" + this.viewId)
+        if(tableConfig != null) {
+          this.tableConfig = tableConfig;
+        } else if(this.columns.length > 0) {
           this.tableConfig = {
-            settingColumns: this.initSettingColumns(),
+            settingColumns: this.columns.map((column) => {
+              return {
+                dataIndex: column.dataIndex,
+                listShow: true
+              }
+            }),
             queryParamsModel: [],
             sortParamsModel: []
           }
         }
-      },
-      initSettingColumns() {
-        return this.columns.map((column) => {
-          return {
-            dataIndex: column.dataIndex,
-            listShow: true
-          }
-        });
+
+        if(this.tableConfig != null && this.columns.length > 0) {
+          this.handleFieldChanged(this.tableConfig.settingColumns);
+          this.refreshData();
+        }
       },
       filterVisibleChange(visible) {
         if(visible) {
           return;
         }
-        var param = this.tableConfig.queryParamsModel;
-        param = removeEmptyObject(param)
-        console.log(param)
-        this.handleSuperQuery(param, 'and');
+        this.refreshData();
       },
       sortVisibleChange(visible) {
         if(visible) {
           return;
         }
-        var param = this.tableConfig.sortParamsModel;
-        param = removeEmptyObject(param)
-        this.sortParamsModel = param
-        console.log(param)
-
-        if (param.length > 0) {
-          this.isorter = {column:param[0].field, order:param[0].order};      //其余的前端排序
-          this.loadData(1);
-        }
+        this.refreshData();
       },
-      handleResultAfter() {
+      refreshData() {
+        this.sortParamsModel = removeEmptyObject(this.tableConfig.sortParamsModel)
+        if (this.sortParamsModel.length > 0) {
+          //后端仅支持第一排序字段，其余的前端排序
+          this.isorter = {
+            column: this.sortParamsModel[0].field,
+             order: this.sortParamsModel[0].order
+          };
+        }
+
+        var superParam = removeEmptyObject(this.tableConfig.queryParamsModel)
+        this.handleSuperQuery(superParam, 'and');
+      },
+      handleFieldChanged: function(settingColumns) {
+        var columns = settingColumns.map(el=>el.dataIndex);
+        this.tableColumns.sort(function(a, b) {
+          return columns.indexOf(a.dataIndex) - columns.indexOf(b.dataIndex);
+        })
+        this.superQueryFieldList.sort(function(a, b) {
+          return columns.indexOf(a.value) - columns.indexOf(b.value);
+        });
+
+        //只处理字段显示隐藏和顺序变更，不需要触发loadData()
+      },
+      handleResultCallback() {
         var params = this.sortParamsModel;
         if(params != null && params.length > 1) {
           this.dataSource.sort(function(a, b) {
@@ -264,15 +281,6 @@
             return 0;
           });
         }
-      },
-      handleFieldChanged: function(settingColumns) {
-        var columns = settingColumns;
-        this.tableColumns.sort(function(a, b) {
-          return columns.indexOf(a.dataIndex) - columns.indexOf(b.dataIndex);
-        })
-        this.superQueryFieldList.sort(function(a, b) {
-          return columns.indexOf(a.value) - columns.indexOf(b.value);
-        });
       },
       handleSortQuery() {
       }

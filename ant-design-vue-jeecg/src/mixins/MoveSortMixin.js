@@ -9,8 +9,8 @@ export const MoveSortMixin = {
       if(e.button != 0) {
         return ;
       }
+      e.preventDefault();
 
-      //e.preventDefault();
       console.debug("drag-start", e);
       this.dragging = this.bubble(e.target);
       this.dragList = this.dragging.parentNode;
@@ -87,6 +87,7 @@ export const MoveSortMixin = {
       if(this.dragging == null) {
         return ;
       }
+      e.preventDefault();
       
       //this.dragging.style.cssText = "opacity:0;z-index:0";
       this.dragging.classList.remove("dragging")

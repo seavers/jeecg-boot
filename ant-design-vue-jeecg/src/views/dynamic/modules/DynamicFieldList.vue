@@ -42,26 +42,10 @@
         }
         return '';
       },
-      moveSortCallback() {
-        var parentNode = this.$el.querySelector('.ant-list-items');
-
-        var dataIndexes = [];
-        parentNode.childNodes.forEach(function(el) {
-          dataIndexes.push(el.getAttribute("dataIndex"))
-        })
-        this.settingColumns.sort(function(a, b) {
-          return dataIndexes.indexOf(a.dataIndex) - dataIndexes.indexOf(b.dataIndex);
-        })
-
-        console.log("field-list", dataIndexes)
-        this.$emit("change", dataIndexes);
-      },
       moveSortIndex(dragIndex, targetIndex) {
         this.arraySwap(this.settingColumns, dragIndex, targetIndex);
 
-        var dataIndexes = this.settingColumns.map(el=>el.dataIndex);
-        console.log("field-list", dataIndexes)
-        this.$emit("change", dataIndexes);
+        this.$emit("change", this.settingColumns);
       }
     }
   }
