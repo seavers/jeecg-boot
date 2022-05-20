@@ -34,6 +34,7 @@
         <div style="margin-top: 15px">
           <a-table
             ref="table"
+            class="dynamic-table"
             style="height:500px"
             size="middle"
             bordered
@@ -188,6 +189,7 @@
 
             this.columns = res.result.columns.concat([]);        //隔离后用于fieldList
             this.dictOptions = res.result.dictOptions;
+            this.handleColumnDictOptions(this.dictOptions);
 
             this.tableColumns = res.result.columns
             this.tableColumns.forEach(column => {
@@ -349,5 +351,15 @@
   }
   .table-page-toolbar .btn-right-group {
     margin-left: auto;
+  }
+
+  .dynamic-table .dynamic-option {
+    display: inline-block;
+    padding: 2px 5px;
+    border-radius: 5px;
+    margin-right: 15px;
+    margin-bottom: 5px;
+    white-space: nowrap;
+
   }
 </style>

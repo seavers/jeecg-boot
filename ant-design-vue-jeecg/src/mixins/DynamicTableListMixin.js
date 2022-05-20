@@ -150,6 +150,14 @@ export const DynamicTableListMixin = {
       }
     },
     
+    handleColumnDictOptions(dictOptions) {
+      Object.values(dictOptions).forEach(options => {
+        options.forEach(option => {
+          var hue = Math.floor(Math.random()* 256);
+          option.backgroundColor = "hsl("+hue+"deg 100% 90%)";
+        });
+      });
+    },
     handleColumnHrefAndDict(column,fieldHrefSlots) {
       var vm = this;
       var customRender = column.customRender
@@ -170,7 +178,31 @@ export const DynamicTableListMixin = {
               var u = custom.replace("_replace_text_", "");
               value = context[u]
             } else {
-              value = filterMultiDictText(vm.dictOptions[custom], value);
+              var values = vm.filterMultiDict(vm.dictOptions[custom], value);
+              if(values.length == 0) {
+                return "";
+              } else if(values.length == 1) {
+                var option = values[0];
+                return vm.$createElement("span", {
+                  class: {
+                    "dynamic-option": true
+                  },
+                  style: {
+                    backgroundColor: option.backgroundColor,
+                  }
+                }, [option.text])
+              } else {
+                return vm.$createElement("span", {}, values.map(function(option) {
+                  return vm.$createElement("span", {
+                    class: {
+                      "dynamic-option": true
+                    },
+                    style: {
+                      backgroundColor: option.backgroundColor,
+                    }
+                  }, [option.text])
+                }));
+              }
             }
           }
           if (column.showLength && value && value.length > column.showLength) {
@@ -242,6 +274,23 @@ export const DynamicTableListMixin = {
       this.hrefComponent.is = function() {
         return __webpack_require__("9dac")("./" + (n.startsWith("/") ? n.slice(1) : n))
       }
+    },
+
+    filterMultiDict(dictOptions, text) {
+      if(dictOptions==null) {
+        return []
+      }
+
+      let re = "";
+      text = text.toString()
+      let arr = text.split(",")
+      return dictOptions.filter(function (option) {
+        for(let i=0;i<arr.length;i++){
+          if (arr[i] === option.value) {
+            return true;
+          }
+        }
+      });
     }
   }
 }
