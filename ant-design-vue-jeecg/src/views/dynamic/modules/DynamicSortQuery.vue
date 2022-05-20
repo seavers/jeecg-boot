@@ -119,6 +119,9 @@
     transition: none;
     z-index: 1;
   }
+  .j-sort-query-box .ant-radio-button-wrapper {
+    transition: none;
+  }
 
 
 
