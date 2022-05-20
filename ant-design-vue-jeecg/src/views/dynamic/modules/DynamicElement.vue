@@ -20,8 +20,8 @@
         ></j-popup>
       </template>
       <template v-else>
-        <j-multi-select-tag v-show="allowMultiple" v-model="itemValue" :dictCode="getDictInfo(item)" placeholder="请选择"/>
-        <j-dict-select-tag v-show="!allowMultiple" v-model="itemValue" :dictCode="getDictInfo(item)" placeholder="请选择"/>
+        <j-multi-select-tag v-if="allowMultiple" v-model="itemValue" :dictCode="getDictInfo(item)" placeholder="请选择"/>
+        <j-dict-select-tag v-if="!allowMultiple" v-model="itemValue" :dictCode="getDictInfo(item)" placeholder="请选择"/>
       </template>
     </template>
     <j-popup
@@ -71,19 +71,12 @@
   import moment from 'moment'
 
   export default {
-    name: 'DynamicFilterQuery',
+    name: 'DynamicElement',
     components: {  },
     props: {
-      item: {
-        type: Object
-      },
-      allowMultiple: {
-        type: Boolean,
-        default: false
-      },
-      value: {
-        type: String
-      }
+      item: Object,
+      allowMultiple: Boolean,
+      value: [String, Number]
     },
     data() {
       return {
