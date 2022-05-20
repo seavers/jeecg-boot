@@ -72,9 +72,9 @@
 </template>
 <script>
   import { JeecgListMixin } from '@/mixins/JeecgListMixin'
+  import { DynamicTableListMixin } from '@/mixins/DynamicTableListMixin'
   import { deleteAction, postAction, getAction } from '@/api/manage'
   import { filterObj, removeEmptyObject } from '@/utils/util'
-  import { handleGetSchema, schemaTransform, handleColumnHrefAndDict } from '@/utils/schema'
   import DynamicModal from '../dynamic/DynamicModal'
   import DynamicViewList from './modules/DynamicViewList'
   import DynamicFieldList from './modules/DynamicFieldList'
@@ -84,7 +84,7 @@
 
   export default {
     name: 'DynamicList',
-    mixins: [JeecgListMixin],
+    mixins: [JeecgListMixin, DynamicTableListMixin],
     components: {
       DynamicFilterQuery,
       DynamicModal,
@@ -181,16 +181,21 @@
       loadDynamicData() {
         getAction('/online/cgform/api/getColumns/' + this.dynamicId, {}).then((res) => {
           if (res.success) {
-            var collect = {};
+            var fieldHrefSlots = {};
+            res.result.fieldHrefSlots.forEach((function(e) {
+                return fieldHrefSlots[e.slotName] = e
+            }));
+
             this.columns = res.result.columns.concat([]);        //隔离后用于fieldList
             this.dictOptions = res.result.dictOptions;
 
             this.tableColumns = res.result.columns
             this.tableColumns.forEach(column => {
-              handleColumnHrefAndDict(this, column, collect)
-              if (column.scopedSlots === null) {        //组件bug，null会报错
-                column.scopedSlots = undefined
-              }
+              Object.keys(column).map((function(e) {
+                  null == column[e] && delete column[e]
+              }));
+              this.handleColumnHrefAndDict(column, fieldHrefSlots)
+              this.handleColumnShowLength(column)
             });
             this.loadDynamicConfig();
           }else{
@@ -199,8 +204,8 @@
         })
         getAction('/online/cgform/api/getFormItem/' + this.dynamicId, {}).then((res) => {
           if (res.success) {
-            this.formColumns = handleGetSchema(this, res.result.schema)
-            this.superQueryFieldList = handleGetSchema(this, res.result.schema)
+            this.formColumns = this.handleGetSchema(this, res.result.schema)
+            this.superQueryFieldList = this.handleGetSchema(this, res.result.schema)
           }else{
             this.$message.warning(res.message)
           }
