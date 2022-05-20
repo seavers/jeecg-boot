@@ -14,14 +14,14 @@
 
           <a-popover title="筛选" placement="bottomLeft" trigger="click" @visibleChange="filterVisibleChange" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-filter">
             <template #content>
-              <dynamic-filter-query ref="filter" :fieldList="superQueryFieldList" :queryParamsModel="tableConfig.queryParamsModel" @handleSuperQuery="handleSuperQuery"/>
+              <dynamic-filter-query ref="filter" :fieldList="superQueryFieldList" :queryParamsModel="tableConfig.queryParamsModel" @change="changeQueryParamsModel"/>
             </template>
             <a-button type="primary" icon="filter">筛选</a-button>
           </a-popover>
 
           <a-popover title="排序" placement="bottom" trigger="click" @visibleChange="sortVisibleChange" overlayClassName="dynamic-popover-overlay dynamic-popover-overlay-sort">
             <template #content>
-              <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortParamsModel="tableConfig.sortParamsModel" @handleSortQuery="handleSortQuery"/>
+              <dynamic-sort-query ref="sort" :fieldList="superQueryFieldList" :sortParamsModel="tableConfig.sortParamsModel" @change="changeSortParamsModel"/>
             </template>
             <a-button type="primary" icon="sort-ascending">排序</a-button>
           </a-popover>
@@ -171,7 +171,7 @@
         }
       },
       viewId: function() {
-        this.loadDynamicConfig()
+        this.loadDynamicConfig(true)
       },
     },
     created() {
@@ -197,7 +197,7 @@
               this.handleColumnHrefAndDict(column, fieldHrefSlots)
               this.handleColumnShowLength(column)
             });
-            this.loadDynamicConfig();
+            this.loadDynamicConfig(true);
           }else{
             this.$message.warning(res.message)
           }
@@ -211,9 +211,20 @@
           }
         })
       },
-      loadDynamicConfig() {
+      loadDynamicConfig(check) {
         var tableConfig = this.$ls.get('dynamic:config:' + this.dynamicId + ":" + this.viewId)
         if(tableConfig != null) {
+          if(check && tableConfig.settingColumns) {     //校验是否有新增的字段
+            var settingColumnNames = tableConfig.settingColumns.map(el=>el.dataIndex);
+            this.columns.forEach((column) => {
+              if(settingColumnNames.indexOf(column.dataIndex) == -1) {
+                tableConfig.settingColumns.push({
+                  dataIndex: column.dataIndex,
+                  listShow: false
+                })
+              } 
+            })
+          }
           this.tableConfig = tableConfig;
         } else if(this.columns.length > 0) {
           this.tableConfig = {
@@ -233,17 +244,30 @@
           this.refreshData();
         }
       },
+      changeQueryParamsModel() {
+        this.queryParamsModelChanged = true;
+      },
+      changeSortParamsModel() {
+        this.sortParamsModelChanged = true;
+      },
       filterVisibleChange(visible) {
         if(visible) {
           return;
         }
-        this.refreshData();
+
+        if(this.queryParamsModelChanged) {
+          this.queryParamsModelChanged = false;
+          this.refreshData();
+        }
       },
       sortVisibleChange(visible) {
         if(visible) {
           return;
         }
-        this.refreshData();
+        if(this.sortParamsModelChanged) {
+          this.sortParamsModelChanged = false;
+          this.refreshData();
+        }
       },
       refreshData() {
         this.sortParamsModel = removeEmptyObject(this.tableConfig.sortParamsModel)

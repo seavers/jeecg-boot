@@ -70,6 +70,14 @@
         required: true
       },
     },
+    watch: {
+      sortParamsModel: {
+        deep: true,
+        handler: function(newValue, oldValue) {
+          this.$emit("change", newValue)
+        }
+      }
+    },
     data() {
       return {
       }
