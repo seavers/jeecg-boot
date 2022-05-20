@@ -154,7 +154,7 @@ export const DynamicTableListMixin = {
       var vm = this;
       var customRender = column.customRender
       var hrefSlotName = column.hrefSlotName
-      if ("Date" == column.fieldType || customRender == 'Date') {
+      if ("Date" == column.fieldType || column.scopedSlots && column.scopedSlots.customRender == 'dateSlot') {
         column.customRender = function(e) {
           return e ? e.length > 10 ? e.substring(0, 10) : e : ""
         }
