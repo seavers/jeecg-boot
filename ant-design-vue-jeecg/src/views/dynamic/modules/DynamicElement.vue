@@ -20,8 +20,8 @@
         ></j-popup>
       </template>
       <template v-else>
-        <j-multi-select-tag v-show="allowMultiple(item)" v-model="itemValue" :dictCode="item.dictCode" placeholder="请选择"/>
-        <j-dict-select-tag v-show="!allowMultiple(item)" v-model="itemValue" :dictCode="item.dictCode" placeholder="请选择"/>
+        <j-multi-select-tag v-show="allowMultiple" v-model="itemValue" :dictCode="getDictInfo(item)" placeholder="请选择"/>
+        <j-dict-select-tag v-show="!allowMultiple" v-model="itemValue" :dictCode="getDictInfo(item)" placeholder="请选择"/>
       </template>
     </template>
     <j-popup
@@ -52,7 +52,7 @@
       :options="item.options"
       allowClear
       placeholder="请选择"
-      :mode="allowMultiple(item)?'multiple':''"
+      :mode="allowMultiple?'multiple':''"
     />
     <j-area-linkage v-model="itemValue" v-else-if="item.type==='area-linkage' || item.type==='pca'" style="width: 100%"/>
     <j-date v-else-if=" item.type=='date' " v-model="itemValue" placeholder="请选择日期" style="width: 100%"></j-date>
@@ -77,8 +77,9 @@
       item: {
         type: Object
       },
-      rule: {
-        type: String
+      allowMultiple: {
+        type: Boolean,
+        default: false
       },
       value: {
         type: String
@@ -109,10 +110,6 @@
         }
         console.log('高级查询字典信息',str)
         return str
-      },
-      /** 判断是否允许多选 */
-      allowMultiple(item) {
-        return this.rule === 'in'
       },
       handleChangeJPopup(item, e, values) {
         itemValue = values[item.popup['destFields']]

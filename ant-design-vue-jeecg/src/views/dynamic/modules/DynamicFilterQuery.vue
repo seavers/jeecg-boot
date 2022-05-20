@@ -36,7 +36,7 @@
               </a-col>
 
               <a-col :md="8" :xs="24" style="margin-bottom: 12px;">
-                <dynamic-element :item="findItem(item.field)" :rule="item.rule" :value.sync="item.val"></dynamic-element>
+                <dynamic-element :item="findItem(item.field)" :allowMultiple="item.rule == 'in'" :value.sync="item.val"></dynamic-element>
               </a-col>
 
               <a-col :md="2" :xs="0" style="margin-bottom: 12px;">
@@ -90,7 +90,7 @@
     },
     methods: {
       findItem(field) {
-        return this.fieldList.find((el)=>el.value==field);
+        return field == null ? {} : this.fieldList.find((el)=>el.value==field);
       },
       handleAdd() {
         this.queryParamsModel.push({ rule: 'eq' })
