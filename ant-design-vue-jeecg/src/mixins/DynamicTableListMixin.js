@@ -8,6 +8,7 @@ export const DynamicTableListMixin = {
   },
   methods: {
     handleGetSchema(t, e) {
+      var vm = this;
       return e && e.properties && function() {
         var n = function(e, t) {
           var n = t.view || t.type || "string";
@@ -44,7 +45,7 @@ export const DynamicTableListMixin = {
               children: []
             };
             if (r.columns) {
-              var o, c = _createForOfIteratorHelper(r.columns);
+              var o, c = vm._createForOfIteratorHelper(r.columns);
               try {
                 for (c.s(); !(o = c.n()).done; ) {
                   var s = o.value;
